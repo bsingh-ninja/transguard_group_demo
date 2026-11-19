@@ -9,7 +9,7 @@ All sites, guards, rosters, payslips and tickets are simulated (fictional names)
 | | |
 |---|---|
 | Demo video (24 s) | [brag-output/brag.mp4](brag-output/brag.mp4) ([open on GitHub](https://github.com/bsingh-ninja/transguard_group_demo/blob/main/brag-output/brag.mp4)) |
-| Live demo | https://transguard-demo.onrender.com (Arabic: https://transguard-demo.onrender.com/?lang=ar). User name `demo`; ask NinjaTech for the password. The free server sleeps after 15 minutes idle; the first visit then takes about a minute. Local: http://localhost:3002 |
+| Live demo | https://transguard-demo.onrender.com (Arabic: https://transguard-demo.onrender.com/?lang=ar).. The free server sleeps after 15 minutes idle; the first visit then takes about a minute. Local: http://localhost:3002 |
 | Code | https://github.com/bsingh-ninja/transguard_group_demo |
 
 [![Transguard Workforce Intelligence, 23-second demo video](brag-output/brag.jpg)](brag-output/brag.mp4)
@@ -77,7 +77,7 @@ GEMINI_MODEL=gemini-2.5-flash
 The smoke test also runs against the local demo: `cd backend && .venv/bin/python scripts/smoke.py http://127.0.0.1:8002`. 
 ## Deploy
 
-Hosted on Render's free plan as the web service `transguard-demo` (Frankfurt). Render builds the `Dockerfile` and redeploys on every push to `main`. The container runs Postgres, the API and the web app on port 7860; nginx serves the web app and forwards `/api` to the API. The demo data is seeded fresh on every start, so a restart also resets the demo. `GEMINI_API_KEY` and `DEMO_PASSWORD` (user name `demo`) are set as environment variables on the Render service, not in the code.
+Hosted on Render's free plan as the web service `transguard-demo` (Frankfurt). Render builds the `Dockerfile` and redeploys on every push to `main`. The container runs Postgres, the API and the web app on port 7860; nginx serves the web app and forwards `/api` to the API. The demo data is seeded fresh on every start, so a restart also resets the demo. `GEMINI_API_KEY` is set as an environment variable on the Render service, not in the code. The demo is open (no password); setting `DEMO_PASSWORD` on the service turns on a password prompt (user name `demo`).
 
 Try the container locally:
 
