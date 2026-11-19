@@ -9,7 +9,7 @@ All sites, guards, rosters, payslips and tickets are simulated (fictional names)
 | | |
 |---|---|
 | Demo video (24 s) | [brag-output/brag.mp4](brag-output/brag.mp4) ([open on GitHub](https://github.com/bsingh-ninja/transguard_group_demo/blob/main/brag-output/brag.mp4)) |
-| Live demo | https://transguard-demo.onrender.com (Arabic: https://transguard-demo.onrender.com/?lang=ar).. The free server sleeps after 15 minutes idle; the first visit then takes about a minute. Local: http://localhost:3002 |
+| Live demo | https://transguard-demo.onrender.com (Arabic: https://transguard-demo.onrender.com/?lang=ar). The free server sleeps after 15 minutes idle; the first visit then takes about a minute. Local: http://localhost:3002 |
 | Code | https://github.com/bsingh-ninja/transguard_group_demo |
 
 [![Transguard Workforce Intelligence, 23-second demo video](brag-output/brag.jpg)](brag-output/brag.mp4)
