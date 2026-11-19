@@ -1,7 +1,8 @@
 name: CI
 
 # Runs on every push to main, on pull requests, and by hand from the Actions tab.
-# On main, a passing build is deployed to its Hugging Face Space (see the deploy job).
+# Hosting: Render redeploys main on every push. The deploy job below targets a
+# Hugging Face Space instead and stays off until the variable HF_SPACE is set.
 on:
   push:
     branches: [main]

@@ -9,7 +9,7 @@ All sites, guards, rosters, payslips and tickets are simulated (fictional names)
 | | |
 |---|---|
 | Demo video (24 s) | [brag-output/brag.mp4](brag-output/brag.mp4) ([open on GitHub](https://github.com/bsingh-ninja/transguard_group_demo/blob/main/brag-output/brag.mp4)) |
-| Live demo | Runs on the presenter's laptop: http://localhost:3002 (Arabic: http://localhost:3002/?lang=ar). Not hosted yet; see [Run](#run). |
+| Live demo | https://transguard-demo.onrender.com (Arabic: https://transguard-demo.onrender.com/?lang=ar). User name `demo`; ask NinjaTech for the password. The free server sleeps after 15 minutes idle; the first visit then takes about a minute. Local: http://localhost:3002 |
 | Code | https://github.com/bsingh-ninja/transguard_group_demo |
 
 [![Transguard Workforce Intelligence, 23-second demo video](brag-output/brag.jpg)](brag-output/brag.mp4)
@@ -75,9 +75,9 @@ GEMINI_MODEL=gemini-2.5-flash
 - **API:** Postgres 16 service, seed the demo data, start the API, then `backend/scripts/smoke.py` checks the demo scenario. No Gemini key is needed in CI; the AI features are not called.
 
 The smoke test also runs against the local demo: `cd backend && .venv/bin/python scripts/smoke.py http://127.0.0.1:8002`. 
-## Deploy (Hugging Face Space)
+## Deploy
 
-The `Dockerfile` runs Postgres, the API and the web app in one container on port 7860; nginx serves the web app and forwards `/api` to the API. The demo data is seeded fresh on every start. Setting `DEMO_PASSWORD` turns on a password prompt (user name `demo`).
+Hosted on Render's free plan as the web service `transguard-demo` (Frankfurt). Render builds the `Dockerfile` and redeploys on every push to `main`. The container runs Postgres, the API and the web app on port 7860; nginx serves the web app and forwards `/api` to the API. The demo data is seeded fresh on every start, so a restart also resets the demo. `GEMINI_API_KEY` and `DEMO_PASSWORD` (user name `demo`) are set as environment variables on the Render service, not in the code.
 
 Try the container locally:
 
@@ -85,13 +85,7 @@ Try the container locally:
 docker build -t demo . && docker run --rm -p 7860:7860 -e GEMINI_API_KEY=... -e DEMO_PASSWORD=... demo
 ```
 
-Deploy by hand (needs `pip install huggingface_hub` and a Hugging Face write token):
-
-```bash
-HF_TOKEN=hf_... GEMINI_API_KEY=... DEMO_PASSWORD=... python deploy/hf_space.py <owner>/<space-name>
-```
-
-Or deploy from CI: add the repository variable `HF_SPACE` (`<owner>/<space-name>`) and the secrets `HF_TOKEN`, `GEMINI_API_KEY` and `DEMO_PASSWORD`; every push to `main` that passes CI is then deployed. The free CPU Space sleeps after 48 hours without visitors and takes about a minute to wake.
+The same image also runs as a Hugging Face Docker Space (needs a PRO account): `HF_TOKEN=... GEMINI_API_KEY=... DEMO_PASSWORD=... python deploy/hf_space.py <owner>/<space-name>`, or from CI by setting the repository variable `HF_SPACE` and the matching secrets.
 
 ## Screens
 
