@@ -1,0 +1,87 @@
+name: CI
+
+# Runs on every push to main, on pull requests, and by hand from the Actions tab.
+# Deploy jobs can be added after these two once a hosting target is chosen.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    name: Web app (lint, types, build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.9.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm exec tsc --noEmit
+      - name: Production build
+        run: pnpm build
+        env:
+          # Set the repository variable NEXT_PUBLIC_API_URL to build for a hosted API.
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'http://localhost:8002' }}
+
+  api:
+    name: API (seed and smoke test)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: demo
+          POSTGRES_PASSWORD: demo
+          POSTGRES_DB: demos
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U demo"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://demo:demo@localhost:5432/demos
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - run: pip install -r requirements.txt
+      - run: python -m compileall -q app scripts
+      - name: Seed demo data
+        run: python -m app.transguard.seed
+      - name: Start API
+        run: |
+          python -m uvicorn app.main:app --port 8002 > uvicorn.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8002/health && exit 0; sleep 1; done
+          cat uvicorn.log
+          exit 1
+      - name: Smoke test
+        run: python scripts/smoke.py http://127.0.0.1:8002
+      - name: API log
+        if: failure()
+        run: cat uvicorn.log || true
