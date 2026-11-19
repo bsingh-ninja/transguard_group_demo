@@ -1,0 +1,150 @@
+@import "tailwindcss";
+
+/*
+  Layout: a supervisor's night-shift desk. Charcoal sidebar, the answer first ("what needs action tonight"),
+  then a map of the coast with every post, and an action list beside it.
+  Color: Transguard red for actions and critical states only, crest gold for selection, warm charcoal neutrals.
+  Type: Open Sans (Transguard's site face), IBM Plex Sans Arabic, tabular figures for data.
+*/
+:root {
+  --bg: #f6f5f4;
+  --surface: #ffffff;
+  --surface-2: #efeeec;
+  --border: #e3e1de;
+  --hairline: #ebe9e6;
+  --sidebar: #1f1c1b;
+  --sidebar-fg: #f2efed;
+  --sidebar-muted: #a39d98;
+  --primary: #d71920;
+  --primary-fg: #ffffff;
+  --accent: #a2844b;
+  --accent-soft: #f3ecdf;
+  --text: #282423;
+  --text-muted: #6b6563;
+  --map-land: #ebe8e4;
+  --map-sea: #dfe7ec;
+  --map-coast: #c9c3bd;
+  --ok: #2e7d32;
+  --warn: #c77700;
+  --crit: #d71920;
+  --shadow: 0 1px 2px rgb(40 36 35 / 0.05), 0 8px 24px -12px rgb(40 36 35 / 0.14);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141211;
+    --surface: #1d1a19;
+    --surface-2: #262220;
+    --border: #36312e;
+    --hairline: #2c2826;
+    --sidebar: #0e0c0b;
+    --sidebar-fg: #f2efed;
+    --sidebar-muted: #9c958f;
+    --primary: #ec4a50;
+    --primary-fg: #ffffff;
+    --accent: #c9a86c;
+    --accent-soft: #2e2720;
+    --text: #f2efed;
+    --text-muted: #a39d98;
+    --map-land: #24201e;
+    --map-sea: #171b1e;
+    --map-coast: #3a3431;
+    --ok: #5cbb84;
+    --warn: #e5a84b;
+    --crit: #ff5a5f;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 10px 30px -12px rgb(0 0 0 / 0.5);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #141211;
+  --surface: #1d1a19;
+  --surface-2: #262220;
+  --border: #36312e;
+  --hairline: #2c2826;
+  --sidebar: #0e0c0b;
+  --sidebar-fg: #f2efed;
+  --sidebar-muted: #9c958f;
+  --primary: #ec4a50;
+  --primary-fg: #ffffff;
+  --accent: #c9a86c;
+  --accent-soft: #2e2720;
+  --text: #f2efed;
+  --text-muted: #a39d98;
+  --map-land: #24201e;
+  --map-sea: #171b1e;
+  --map-coast: #3a3431;
+  --ok: #5cbb84;
+  --warn: #e5a84b;
+  --crit: #ff5a5f;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 10px 30px -12px rgb(0 0 0 / 0.5);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-hairline: var(--hairline);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-fg: var(--sidebar-fg);
+  --color-sidebar-muted: var(--sidebar-muted);
+  --color-primary: var(--primary);
+  --color-primary-fg: var(--primary-fg);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-ink: var(--text);
+  --color-muted: var(--text-muted);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-crit: var(--crit);
+  --font-sans: var(--font-open-sans), var(--font-arabic), system-ui, sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-open-sans), var(--font-arabic), system-ui, sans-serif;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  transition: background-color 250ms ease, color 250ms ease;
+}
+html[lang="ar"] body {
+  font-family: var(--font-arabic), var(--font-open-sans), system-ui, sans-serif;
+}
+
+h1, h2, h3 { text-wrap: balance; }
+.display { font-size: clamp(1.9rem, 1.3rem + 1.5vw, 2.6rem); font-weight: 800; line-height: 1.08; letter-spacing: -0.025em; }
+.title { font-size: 1.2rem; font-weight: 700; line-height: 1.25; letter-spacing: -0.01em; }
+.figure { font-variant-numeric: tabular-nums; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+.label { font-size: 0.8125rem; font-weight: 600; color: var(--text-muted); }
+html[lang="ar"] .display, html[lang="ar"] .title { letter-spacing: 0; line-height: 1.3; }
+.num { font-variant-numeric: tabular-nums; }
+.panel { background: var(--surface); border-radius: 12px; box-shadow: var(--shadow); }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+button, a[href] { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.pressable:active, button:not(:disabled):active { transform: scale(0.97); transition: transform 100ms ease-out; }
+.press-soft:active { transform: scale(0.992); transition: transform 100ms ease-out; }
+
+.sheet-material {
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  box-shadow: -24px 0 60px -20px rgb(31 28 27 / 0.35);
+}
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.rise { animation: rise 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-name: none !important; scroll-behavior: auto !important; }
+  .pressable:active, button:active, .press-soft:active { transform: none !important; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .sheet-material { background: var(--surface); backdrop-filter: none; -webkit-backdrop-filter: none; }
+}
+@media (prefers-contrast: more) {
+  .panel { box-shadow: none; border: 1px solid var(--text); }
+}
