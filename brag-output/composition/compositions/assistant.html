@@ -1,0 +1,45 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; }
+    #assistant-win { position: absolute; inset: 0; }
+    #assistant-frame {
+      position: absolute; left: 160px; top: 90px; width: 1600px; height: 900px;
+      border-radius: 22px; overflow: hidden; background: #f6f5f4;
+      box-shadow: 0 40px 120px -30px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.07);
+    }
+    #assistant-cam { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; }
+    #assistant-cam img { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+    #assistant-cap { position: absolute; inset: 0; }
+    #assistant-cap-pill {
+      position: absolute; left: 200px; top: 828px; padding: 22px 40px 26px; border-radius: 18px;
+      background: rgba(31, 28, 27, 0.94); box-shadow: 0 20px 50px -20px rgba(0,0,0,0.6);
+      font-family: "Open Sans", sans-serif; font-weight: 800; font-size: 60px; line-height: 1.1; letter-spacing: -0.02em; color: #f2efed;
+    }
+    #assistant-cap-pill b { color: #c9a86c; font-weight: 800; }
+  </style>
+  <div id="root" data-composition-id="assistant" data-width="1920" data-height="1080">
+    <div id="assistant-win" class="clip" data-start="0" data-duration="3.16">
+      <div id="assistant-frame" data-layout-allow-overflow>
+        <div id="assistant-cam"><img src="assets/shots/assistant.png" alt="Worker assistant, Urdu" /></div>
+      </div>
+    </div>
+    <div id="assistant-cap" class="clip" data-start="0.4" data-duration="CAP3.16">
+      <div id="assistant-cap-pill">Asked in Urdu. <b>Answered in Urdu.</b></div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    const S = 1600 / 1920;
+    // arrives from the right (the previous screen left to the left), lands blurred and sharpens
+    tl.fromTo("#assistant-frame", { x: 160, opacity: 0, filter: "blur(10px)" },
+      { x: 0, opacity: 1, filter: "blur(0px)", duration: 0.45, ease: "expo.out" }, 0);
+    // camera: from a wider framing onto the moment that matters
+    tl.fromTo("#assistant-cam", { x: -300 * S * 1.05, y: 0 * S * 1.05, scale: S * 1.05 },
+      { x: -480 * S * 1.35, y: -30 * S * 1.35, scale: S * 1.35, duration: 0.9, ease: "power2.inOut" }, 0.15);
+    tl.fromTo("#assistant-cap-pill", { opacity: 0, y: 24, filter: "blur(8px)" },
+      { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.4, ease: "expo.out" }, 0.45);
+    tl.to("#assistant-cap-pill", { opacity: 0, filter: "blur(8px)", duration: 0.18, ease: "power3.in" }, 2.95);
+    tl.to("#assistant-frame", { x: -160, opacity: 0, filter: "blur(10px)", duration: 0.22, ease: "power3.in" }, 2.94);
+    window.__timelines["assistant"] = tl;
+  </script>
+</template>

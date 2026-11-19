@@ -1,0 +1,92 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; }
+    #desk-win { position: absolute; inset: 0; }
+    #desk-frame {
+      position: absolute; left: 160px; top: 90px; width: 1600px; height: 900px;
+      border-radius: 22px; overflow: hidden; background: #f6f5f4;
+      box-shadow: 0 40px 120px -30px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.07);
+    }
+    #desk-cam { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; }
+    .desk-shot { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+    #desk-cleared { opacity: 0; }
+    #desk-wash { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; background: rgba(246, 245, 244, 0.62); opacity: 0; }
+    #desk-sheet {
+      position: absolute; left: 1228px; top: 0; width: 692px; height: 1080px; overflow: hidden;
+      box-shadow: -30px 0 60px -20px rgba(40, 36, 35, 0.25);
+    }
+    #desk-sheet img { position: absolute; left: -1228px; top: 0; width: 1920px; height: 1080px; }
+    .desk-press { position: absolute; border-radius: 12px; background: rgba(0, 0, 0, 0.22); opacity: 0; }
+    #desk-press-fill { left: 1720px; top: 308px; width: 147px; height: 53px; }
+    #desk-press-approve { left: 1260px; top: 939px; width: 628px; height: 58px; }
+    #desk-cursor { position: absolute; left: -6px; top: -4px; width: 46px; height: 46px; opacity: 0; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.35)); }
+    #desk-cap { position: absolute; inset: 0; }
+    #desk-cap-pill {
+      position: absolute; left: 200px; top: 828px; padding: 22px 40px 26px; border-radius: 18px;
+      background: rgba(31, 28, 27, 0.94); box-shadow: 0 20px 50px -20px rgba(0,0,0,0.6);
+      font-family: "Open Sans", sans-serif; font-weight: 800; font-size: 60px; line-height: 1.1; letter-spacing: -0.02em; color: #f2efed;
+    }
+    #desk-cap-pill b { color: #ff3b42; font-weight: 800; }
+  </style>
+  <div id="root" data-composition-id="desk" data-width="1920" data-height="1080">
+    <div id="desk-win" class="clip" data-start="0" data-duration="10">
+      <div id="desk-frame" data-layout-allow-overflow>
+        <div id="desk-cam">
+          <img class="desk-shot" id="desk-tonight" src="assets/shots/tonight.png" alt="Tonight screen" />
+          <img class="desk-shot" id="desk-cleared" src="assets/shots/cleared.png" alt="Every post covered" />
+          <div id="desk-press-fill" class="desk-press"></div>
+          <div id="desk-wash"></div>
+          <div id="desk-sheet"><img src="assets/shots/plan.png" alt="Plan for every gap" /></div>
+          <div id="desk-press-approve" class="desk-press"></div>
+          <svg id="desk-cursor" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 2l7.5 19 2.6-7.9L21 10.5z" fill="#1f1c1b" stroke="#ffffff" stroke-width="1.6" stroke-linejoin="round" />
+          </svg>
+        </div>
+      </div>
+    </div>
+    <div id="desk-cap" class="clip" data-start="4.5" data-duration="2.8">
+      <div id="desk-cap-pill">7 gaps filled in <b>9 ms.</b></div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    const S = 1600 / 1920; // the window shows the 1920px screen at this scale
+    // window arrives slightly large and settles (scene starts on the 3.70s strong cue)
+    tl.fromTo("#desk-frame", { opacity: 0, scale: 1.06, filter: "blur(12px)" },
+      { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.6, ease: "expo.out" }, 0);
+    // camera: whole screen, then push toward Needs action and Fill all gaps
+    tl.fromTo("#desk-cam", { x: 0, y: 0, scale: S }, { x: 0, y: 0, scale: S, duration: 0.01 }, 0);
+    tl.to("#desk-cam", { x: -443 * S * 1.3, y: 0, scale: S * 1.3, duration: 1.6, ease: "power2.inOut" }, 1.4);
+    // cursor glides to Fill all gaps and presses it (click SFX at 7.50s abs)
+    tl.fromTo("#desk-cursor", { x: 1250, y: 760, opacity: 0 }, { x: 1250, y: 760, opacity: 1, duration: 0.25, ease: "power2.out" }, 1.9);
+    tl.to("#desk-cursor", { x: 1793, y: 335, duration: 1.2, ease: "power2.inOut" }, 2.3);
+    tl.to("#desk-cursor", { scale: 0.82, duration: 0.08, ease: "power2.out" }, 3.76);
+    tl.to("#desk-cursor", { scale: 1, duration: 0.16, ease: "power2.out" }, 3.84);
+    tl.fromTo("#desk-press-fill", { opacity: 0 }, { opacity: 1, duration: 0.06 }, 3.76);
+    tl.to("#desk-press-fill", { opacity: 0, duration: 0.2 }, 3.9);
+    // beat-grid 7.91s abs: the plan sheet slides in from the right, as in the app
+    tl.fromTo("#desk-wash", { opacity: 0 }, { opacity: 1, duration: 0.35, ease: "power2.out" }, 4.21);
+    tl.fromTo("#desk-sheet", { x: 692 }, { x: 0, duration: 0.55, ease: "expo.out" }, 4.21);
+    // caption pill (its own clip from 4.5s)
+    tl.fromTo("#desk-cap-pill", { opacity: 0, y: 24, filter: "blur(8px)" },
+      { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.4, ease: "expo.out" }, 4.55);
+    tl.to("#desk-cap-pill", { opacity: 0, filter: "blur(8px)", duration: 0.2, ease: "power3.in" }, 7.05);
+    // camera pans down to bring Approve all and notify into frame
+    tl.to("#desk-cam", { y: -(1080 - 900 / (S * 1.3)) * S * 1.3, duration: 0.8, ease: "power2.inOut" }, 5.3);
+    // cursor to Approve all and notify, press (click SFX at 10.55s abs)
+    tl.to("#desk-cursor", { x: 1573, y: 967, duration: 1.0, ease: "power2.inOut" }, 5.6);
+    tl.to("#desk-cursor", { scale: 0.82, duration: 0.08, ease: "power2.out" }, 6.81);
+    tl.to("#desk-cursor", { scale: 1, duration: 0.16, ease: "power2.out" }, 6.89);
+    tl.fromTo("#desk-press-approve", { opacity: 0 }, { opacity: 1, duration: 0.06 }, 6.81);
+    tl.to("#desk-press-approve", { opacity: 0, duration: 0.2 }, 6.95);
+    tl.to("#desk-cursor", { opacity: 0, duration: 0.2 }, 7.1);
+    // beat-grid 11.06s abs: sheet leaves, roster is clear, camera frames the headline and stats
+    tl.to("#desk-sheet", { x: 692, duration: 0.3, ease: "power3.in" }, 7.12);
+    tl.to("#desk-wash", { opacity: 0, duration: 0.3, ease: "power2.inOut" }, 7.2);
+    tl.fromTo("#desk-cleared", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power2.inOut" }, 7.36);
+    tl.to("#desk-cam", { x: -293 * S * 1.18, y: -30 * S * 1.18, scale: S * 1.18, duration: 0.9, ease: "power2.inOut" }, 7.3);
+    // exit: slide left into the next screen
+    tl.to("#desk-frame", { x: -160, opacity: 0, filter: "blur(10px)", duration: 0.25, ease: "power3.in" }, 9.75);
+    window.__timelines["desk"] = tl;
+  </script>
+</template>

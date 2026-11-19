@@ -1,0 +1,45 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; }
+    #tickets-win { position: absolute; inset: 0; }
+    #tickets-frame {
+      position: absolute; left: 160px; top: 90px; width: 1600px; height: 900px;
+      border-radius: 22px; overflow: hidden; background: #f6f5f4;
+      box-shadow: 0 40px 120px -30px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.07);
+    }
+    #tickets-cam { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; }
+    #tickets-cam img { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+    #tickets-cap { position: absolute; inset: 0; }
+    #tickets-cap-pill {
+      position: absolute; left: 200px; top: 828px; padding: 22px 40px 26px; border-radius: 18px;
+      background: rgba(31, 28, 27, 0.94); box-shadow: 0 20px 50px -20px rgba(0,0,0,0.6);
+      font-family: "Open Sans", sans-serif; font-weight: 800; font-size: 60px; line-height: 1.1; letter-spacing: -0.02em; color: #f2efed;
+    }
+    #tickets-cap-pill b { color: #ff3b42; font-weight: 800; }
+  </style>
+  <div id="root" data-composition-id="tickets" data-width="1920" data-height="1080">
+    <div id="tickets-win" class="clip" data-start="0" data-duration="2.63">
+      <div id="tickets-frame" data-layout-allow-overflow>
+        <div id="tickets-cam"><img src="assets/shots/triage.png" alt="FM ticket triage, P1 lift" /></div>
+      </div>
+    </div>
+    <div id="tickets-cap" class="clip" data-start="0.35" data-duration="CAP2.63">
+      <div id="tickets-cap-pill">Stuck lift: <b>P1</b>, technician assigned.</div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    const S = 1600 / 1920;
+    // arrives from the right (the previous screen left to the left), lands blurred and sharpens
+    tl.fromTo("#tickets-frame", { x: 160, opacity: 0, filter: "blur(10px)" },
+      { x: 0, opacity: 1, filter: "blur(0px)", duration: 0.45, ease: "expo.out" }, 0);
+    // camera: from a wider framing onto the moment that matters
+    tl.fromTo("#tickets-cam", { x: -700 * S * 1.3, y: -330 * S * 1.3, scale: S * 1.3 },
+      { x: -900 * S * 1.6, y: -400 * S * 1.6, scale: S * 1.6, duration: 0.8, ease: "power2.inOut" }, 0.15);
+    tl.fromTo("#tickets-cap-pill", { opacity: 0, y: 24, filter: "blur(8px)" },
+      { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.4, ease: "expo.out" }, 0.4);
+    tl.to("#tickets-cap-pill", { opacity: 0, filter: "blur(8px)", duration: 0.18, ease: "power3.in" }, 2.38);
+    tl.to("#tickets-frame", { opacity: 0, scale: 0.98, filter: "blur(10px)", duration: 0.22, ease: "power3.in" }, 2.38);
+    window.__timelines["tickets"] = tl;
+  </script>
+</template>

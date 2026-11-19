@@ -1,0 +1,32 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; }
+    #outro-block { position: absolute; left: 0; right: 0; top: 250px; display: flex; flex-direction: column; align-items: center; text-align: center; font-family: "Open Sans", sans-serif; }
+    #outro-logo { width: 132px; height: 132px; }
+    #outro-title { margin-top: 34px; font-weight: 800; font-size: 104px; line-height: 1.05; letter-spacing: -0.025em; color: #f2efed; }
+    .outro-w { display: inline-block; }
+    #outro-note { margin-top: 30px; font-weight: 400; font-size: 36px; line-height: 1.35; color: #a39d98; }
+    #outro-by { margin-top: 22px; font-weight: 600; font-size: 36px; color: #c9a86c; }
+  </style>
+  <div id="root" data-composition-id="outro" data-width="1920" data-height="1080">
+    <div id="outro-block" class="clip" data-start="0" data-duration="4.01">
+      <img id="outro-logo" src="assets/transguard-logo.png" alt="Transguard Group crest" />
+      <div id="outro-title"><span class="outro-w">Workforce</span> <span class="outro-w">Intelligence</span></div>
+      <div id="outro-note">Concept demo for Transguard Group. Simulated sites and guards.</div>
+      <div id="outro-by">Built by NinjaTech</div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#outro-logo", { opacity: 0, scale: 0.92, filter: "blur(8px)" },
+      { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.5, ease: "expo.out" }, 0.15);
+    tl.fromTo("#outro-title .outro-w", { opacity: 0, filter: "blur(6px)" },
+      { opacity: 1, filter: "blur(0px)", duration: 0.14, ease: "power4.out", stagger: 0.09 }, 0.4);
+    tl.fromTo("#outro-note", { opacity: 0, filter: "blur(8px)" },
+      { opacity: 1, filter: "blur(0px)", duration: 0.2, ease: "power4.out" }, 0.9);
+    // beat-grid 21.07s abs, with the outro chime; holds 2.4s to the end
+    tl.fromTo("#outro-by", { opacity: 0, filter: "blur(8px)" },
+      { opacity: 1, filter: "blur(0px)", duration: 0.2, ease: "power4.out" }, 1.58);
+    window.__timelines["outro"] = tl;
+  </script>
+</template>

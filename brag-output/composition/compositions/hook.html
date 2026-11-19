@@ -1,0 +1,33 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; }
+    #hook-lines { position: absolute; left: 240px; top: 300px; display: flex; flex-direction: column; gap: 18px; }
+    .hook-line { font-family: "Open Sans", sans-serif; font-weight: 800; font-size: 112px; line-height: 1.08; letter-spacing: -0.025em; color: #f2efed; }
+    #hook-l2 { color: #ff3b42; }
+    #hook-l3 { color: #c9a86c; }
+    .hook-w { display: inline-block; }
+  </style>
+  <div id="root" data-composition-id="hook" data-width="1920" data-height="1080">
+    <div id="hook-lines" class="clip" data-start="0" data-duration="3.7">
+      <div id="hook-l1" class="hook-line">702 posts tonight.</div>
+      <div id="hook-l2" class="hook-line">4 are empty.</div>
+      <div id="hook-l3" class="hook-line">
+        <span class="hook-w">3</span> <span class="hook-w">guards</span> <span class="hook-w">may</span> <span class="hook-w">not</span> <span class="hook-w">show.</span>
+      </div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    // line 1: whole line blurs in
+    tl.fromTo("#hook-l1", { opacity: 0, filter: "blur(10px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.2, ease: "power4.out" }, 0.25);
+    // line 2: beat-locked: 1.60s (strong cue), lands with a short settle
+    tl.fromTo("#hook-l2", { opacity: 0, filter: "blur(10px)", scale: 1.06, transformOrigin: "0% 50%" },
+      { opacity: 1, filter: "blur(0px)", scale: 1, duration: 0.35, ease: "expo.out" }, 1.6);
+    // line 3: beat-grid 2.12s, words 70 ms apart
+    tl.fromTo("#hook-l3 .hook-w", { opacity: 0, filter: "blur(6px)" },
+      { opacity: 1, filter: "blur(0px)", duration: 0.14, ease: "power4.out", stagger: 0.07 }, 2.12);
+    // exit together just before the cut at 3.70s (beat-locked)
+    tl.to(".hook-line", { opacity: 0, filter: "blur(8px)", duration: 0.18, ease: "power3.in" }, 3.48);
+    window.__timelines["hook"] = tl;
+  </script>
+</template>

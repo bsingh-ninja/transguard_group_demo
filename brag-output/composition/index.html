@@ -1,0 +1,78 @@
+<!doctype html>
+<html
+  lang="en"
+  data-composition-variables='[
+    {"id":"color-ground","type":"color","label":"Background","default":"#1f1c1b"},
+    {"id":"color-ink","type":"color","label":"Text","default":"#f2efed"},
+    {"id":"color-accent","type":"color","label":"Accent","default":"#d71920"},
+    {"id":"color-gold","type":"color","label":"Gold","default":"#a2844b"},
+    {"id":"font-display","type":"string","label":"Display font","default":"Open Sans"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --color-ground: #1f1c1b;
+        --color-ink: #f2efed;
+        --color-accent: #d71920;
+        --color-gold: #a2844b;
+        --font-display: "Open Sans";
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--color-ground); }
+      #root { position: relative; width: 100%; height: 100%; font-family: var(--font-display), sans-serif; }
+      #ground { position: absolute; inset: 0; background: var(--color-ground); }
+      /* warm light behind the app window; its strength follows the music (per-beat RMS) */
+      #glow {
+        position: absolute; left: 260px; top: 140px; width: 1400px; height: 900px;
+        background: radial-gradient(closest-side, rgba(215, 25, 32, 0.55), rgba(162, 132, 75, 0.18) 55%, rgba(31, 28, 27, 0) 100%);
+        opacity: 0.2;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="23.5" data-width="1920" data-height="1080">
+      <div id="ground" data-layout-ignore></div>
+      <div id="glow" data-layout-ignore></div>
+
+      <div id="hook" data-composition-id="hook" data-composition-src="compositions/hook.html" data-track-kind="graphics"
+        data-start="0" data-duration="3.7" data-track-index="1" data-width="1920" data-height="1080"></div>
+      <div id="desk" data-composition-id="desk" data-composition-src="compositions/desk.html" data-track-kind="graphics"
+        data-start="3.7" data-duration="10" data-track-index="1" data-width="1920" data-height="1080"></div>
+      <div id="assistant" data-composition-id="assistant" data-composition-src="compositions/assistant.html" data-track-kind="graphics"
+        data-start="13.7" data-duration="3.16" data-track-index="1" data-width="1920" data-height="1080"></div>
+      <div id="tickets" data-composition-id="tickets" data-composition-src="compositions/tickets.html" data-track-kind="graphics"
+        data-start="16.86" data-duration="2.63" data-track-index="1" data-width="1920" data-height="1080"></div>
+      <div id="outro" data-composition-id="outro" data-composition-src="compositions/outro.html" data-track-kind="graphics"
+        data-start="19.49" data-duration="4.01" data-track-index="1" data-width="1920" data-height="1080"></div>
+
+      <audio id="music" class="clip" src="assets/music/happy-beats-business-moves-vol-11-by-ende-dot-app.mp3"
+        data-start="0" data-duration="23.5" data-track-index="2" data-volume="0.55" data-fade-in="0.3" data-fade-out="1.5"></audio>
+
+      <!-- SFX lane: every sound lands on the frame its motion does -->
+      <audio id="sfx-hook-1" class="clip" src="assets/sfx/impact/impactSoft_medium_001.ogg" data-start="0.25" data-duration="0.18" data-track-index="3" data-volume="0.5"></audio>
+      <audio id="sfx-hook-2" class="clip" src="assets/sfx/impact/impactSoft_medium_004.ogg" data-start="1.6" data-duration="0.15" data-track-index="3" data-volume="0.65"></audio>
+      <audio id="sfx-hook-3" class="clip" src="assets/sfx/impact/impactSoft_medium_002.ogg" data-start="2.12" data-duration="0.14" data-track-index="3" data-volume="0.5"></audio>
+      <audio id="sfx-click-fill" class="clip" src="assets/sfx/ui/click2.ogg" data-start="7.5" data-duration="0.06" data-track-index="3" data-volume="0.8"></audio>
+      <audio id="sfx-sheet" class="clip" src="assets/sfx/casino/card-slide-1.ogg" data-start="7.91" data-duration="0.6" data-track-index="3" data-volume="0.45"></audio>
+      <audio id="sfx-click-approve" class="clip" src="assets/sfx/ui/click2.ogg" data-start="10.55" data-duration="0.06" data-track-index="3" data-volume="0.8"></audio>
+      <audio id="sfx-covered" class="clip" src="assets/sfx/impact/impactBell_heavy_000.ogg" data-start="11.1" data-duration="1.48" data-track-index="3" data-volume="0.4"></audio>
+      <audio id="sfx-p1" class="clip" src="assets/sfx/impact/impactSoft_medium_000.ogg" data-start="17.1" data-duration="0.12" data-track-index="3" data-volume="0.5"></audio>
+      <audio id="sfx-outro" class="clip" src="assets/sfx/impact/impactBell_heavy_003.ogg" data-start="21.07" data-duration="0.65" data-track-index="3" data-volume="0.3"></audio>
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      // Audio-reactive glow: per-beat music RMS (0..1) from media-use extract-audio-data.py, baked at build time.
+      const BEAT_RMS = [[1.6,0.774],[2.12,0.715],[2.65,0.807],[3.18,0.837],[3.7,0.865],[4.23,0.672],[4.75,0.768],[5.28,0.835],[5.8,0.916],[6.34,0.823],[6.86,0.719],[7.38,0.726],[7.91,0.9],[8.44,0.834],[8.96,0.895],[9.5,0.735],[10.01,0.802],[10.54,0.888],[11.06,0.861],[11.6,0.824],[12.12,0.714],[12.65,0.62],[13.18,0.787],[13.7,0.817],[14.22,0.795],[14.76,0.362],[15.28,0.337],[15.81,0.385],[16.34,0.201],[16.86,0.594],[17.39,0.547],[17.91,0.837],[18.44,0.729],[18.96,0.632],[19.49,0.589],[20.02,0.818],[20.54,0.8],[21.07,0.659],[21.59,0.555],[22.12,0.622],[22.65,0.536],[23.17,0.75]];
+      tl.fromTo("#glow", { opacity: 0 }, { opacity: 0.2, duration: 1.2, ease: "power2.out" }, 0);
+      BEAT_RMS.forEach(([t, r]) => {
+        tl.to("#glow", { opacity: 0.16 + 0.2 * r, duration: 0.12, ease: "power2.out" }, t);
+        tl.to("#glow", { opacity: 0.14 + 0.1 * r, duration: 0.36, ease: "power2.inOut" }, t + 0.12);
+      });
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

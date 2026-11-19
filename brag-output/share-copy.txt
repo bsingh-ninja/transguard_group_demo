@@ -1,0 +1,1 @@
+We built a night-shift desk for a 3,000-guard security operation: tonight's empty posts and likely no-shows on one screen, every gap filled by an optimiser in milliseconds, answers for guards in their own language, and facilities faults triaged to the nearest technician. Concept demo with simulated data, built by NinjaTech.

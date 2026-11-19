@@ -5,6 +5,6 @@ __pycache__/
 *.pyc
 .env
 backend/generated/
-brag-output/
+brag-output/composition/.hyperframes/
 .claude/
 .agents/
