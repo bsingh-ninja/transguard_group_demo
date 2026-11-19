@@ -1,7 +1,7 @@
 name: CI
 
 # Runs on every push to main, on pull requests, and by hand from the Actions tab.
-# Deploy jobs can be added after these two once a hosting target is chosen.
+# On main, a passing build is deployed to its Hugging Face Space (see the deploy job).
 on:
   push:
     branches: [main]
@@ -85,3 +85,22 @@ jobs:
       - name: API log
         if: failure()
         run: cat uvicorn.log || true
+
+  deploy:
+    name: Deploy to Hugging Face Space
+    # Runs after both checks pass on main, once the repository has the variable HF_SPACE
+    # (e.g. owner/space-name) and the secrets HF_TOKEN, GEMINI_API_KEY and DEMO_PASSWORD.
+    if: github.event_name == 'push' && vars.HF_SPACE != ''
+    needs: [web, api]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install huggingface_hub==2.4.0
+      - run: python deploy/hf_space.py "${{ vars.HF_SPACE }}"
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          DEMO_PASSWORD: ${{ secrets.DEMO_PASSWORD }}
