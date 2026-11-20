@@ -18,16 +18,19 @@ RUN apt-get update \
 COPY --from=web /usr/local/bin/node /usr/local/bin/node
 RUN useradd -m -u 1000 user
 WORKDIR /app
+RUN chown user:user /app
 COPY backend/requirements.txt backend/requirements.txt
 RUN pip install --no-cache-dir -r backend/requirements.txt
-COPY backend/ backend/
-COPY deploy/ deploy/
-COPY --from=web /web web/
-RUN chown -R user:user /app
 USER user
 ENV HOME=/home/user \
+    PGDATA=/home/user/pgdata \
     DATABASE_URL=postgresql://demo@127.0.0.1:5432/demos \
     API_PORT=8002 \
     NEXT_TELEMETRY_DISABLED=1
+COPY --chown=user:user backend/ backend/
+COPY --chown=user:user deploy/ deploy/
+# Seed the database and train the no-show model now, so a cold start only has to start the servers.
+RUN bash deploy/run.sh --bake
+COPY --chown=user:user --from=web /web web/
 EXPOSE 7860
 CMD ["bash", "deploy/run.sh"]

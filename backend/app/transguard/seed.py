@@ -10,7 +10,9 @@ from datetime import date, datetime, timedelta
 
 import numpy as np
 
-from app.db import connect
+import psycopg
+
+from app.db import connect, fetch_all
 
 TODAY = date(2026, 11, 18)
 NIGHT_START = datetime(2026, 11, 18, 19, 0)
@@ -130,17 +132,30 @@ create table transguard.message (
 """
 
 
-_TRAINED: tuple[dict, dict] | None = None  # (model, rng state after training): reset reuses it, same data
+_TRAINED: tuple[dict, dict] | None = None  # (model, random state after training)
+
+
+def _trained(rng: np.random.Generator) -> tuple[dict, dict]:
+    """Training is CPU-heavy (minutes on a small server), so it runs once: later seeds (Reset demo) reuse the model
+    and the random state saved with it, and produce exactly the same data."""
+    global _TRAINED
+    if _TRAINED is None:
+        try:
+            rows = {r["name"]: r["params"] for r in fetch_all("select name, params from transguard.model")}
+            if "noshow" in rows and "rng_after_training" in rows:
+                _TRAINED = (rows["noshow"], rows["rng_after_training"])
+        except psycopg.Error:
+            pass  # no seeded database yet
+    if _TRAINED is None:
+        _TRAINED = (train_noshow(rng), rng.bit_generator.state)
+    return _TRAINED
 
 
 def seed():
-    global _TRAINED
     rnd = random.Random(11)
     rng = np.random.default_rng(11)
-    if _TRAINED is None:  # training is CPU-heavy (minutes on a small server), so do it once per process
-        _TRAINED = (train_noshow(rng), rng.bit_generator.state)
-    model = _TRAINED[0]
-    rng.bit_generator.state = _TRAINED[1]
+    model, rng_state = _trained(rng)
+    rng.bit_generator.state = rng_state
 
     # Sites: spread over areas, fictional names
     sites, counters = [], {}
@@ -249,7 +264,8 @@ def seed():
                 "insert into transguard.shift (site_id, worker_id, shift_date, period, starts, ends, noshow_risk, source) "
                 "values (%s,%s,%s,'night',%s,%s,%s,'roster')",
                 [(sid, w["id"], TODAY, NIGHT_START, NIGHT_END, round(predict(model, features_row(w, c)), 4)) for sid, w, c in shifts])
-            cur.execute("insert into transguard.model values ('noshow', %s)", (json.dumps(model),))
+            cur.execute("insert into transguard.model values ('noshow', %s), ('rng_after_training', %s)",
+                        (json.dumps(model), json.dumps(rng_state)))
         from app.transguard.assist import seed_fm  # FM technicians and sample tickets (phase 5)
         seed_fm(conn, random.Random(23))
     print(f"Seeded transguard: {len(site_rows)} sites, {len(workers)} workers, {len(shifts)} night shifts; "
