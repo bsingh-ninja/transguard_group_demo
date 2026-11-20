@@ -257,7 +257,7 @@ def assign_all(req: AssignAll):
         try:
             s, w = _check(a)
         except HTTPException as e:
-            failed.append({"site_id": a.site_id, "error": e.detail})
+            failed.append({"site_id": a.site_id, "worker_id": a.worker_id, "error": e.detail})
             continue
         _write_assignment(a, w)
         written.append((a, s, w))
@@ -271,7 +271,7 @@ def assign_all(req: AssignAll):
                 a, s, w = jobs[job]
                 msg = job.result()
                 _save_message(a.worker_id, msg)
-                yield json.dumps({"site_id": a.site_id, "assigned": {"worker": w["name"], "site": s["name"]}, "message": msg},
+                yield json.dumps({"site_id": a.site_id, "worker_id": a.worker_id, "assigned": {"worker": w["name"], "site": s["name"]}, "message": msg},
                                  ensure_ascii=False) + "\n"
 
     return StreamingResponse(lines(), media_type="application/x-ndjson")

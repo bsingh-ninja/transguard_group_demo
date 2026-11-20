@@ -19,6 +19,57 @@ export async function postJSON<T>(path: string, body: unknown = {}): Promise<T> 
   return res.json();
 }
 
+/**
+ * Load data, retrying while the hosted server wakes up (network errors and 502/503/504 for up to ~3 minutes).
+ * `onWaking` fires once the first attempt has failed or taken longer than 2.5 s.
+ */
+export async function loadWithWake<T>(load: () => Promise<T>, onWaking: () => void): Promise<T> {
+  const slow = setTimeout(onWaking, 2500);
+  const deadline = Date.now() + 180_000;
+  try {
+    for (;;) {
+      try {
+        return await load();
+      } catch (e) {
+        const msg = (e as Error).message;
+        const transient = e instanceof TypeError || /^(502|503|504) /.test(msg);
+        if (!transient || Date.now() > deadline) throw e;
+        onWaking();
+        await new Promise((r) => setTimeout(r, 3000));
+      }
+    }
+  } finally {
+    clearTimeout(slow);
+  }
+}
+
+export type AssignLine = AssignResult & { site_id: string; worker_id: string };
+
+/** Approve a whole plan; `onLine` gets each guard's assignment and message as soon as it is ready. */
+export async function assignAll(
+  assignments: { site_id: string; worker_id: string; replaces_shift_id: number | null }[],
+  onLine: (line: AssignLine | { site_id: string; worker_id: string; error: string }) => void,
+): Promise<void> {
+  const res = await fetch(`${API}/transguard/backfill/assign-all`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ assignments }),
+  });
+  if (!res.ok || !res.body) throw new Error(`${res.status} /transguard/backfill/assign-all`);
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() ?? "";
+    for (const l of lines) if (l.trim()) onLine(JSON.parse(l));
+  }
+  if (buffer.trim()) onLine(JSON.parse(buffer));
+}
+
 export type SiteStatus = "covered" | "at_risk" | "short";
 
 export type Site = {
