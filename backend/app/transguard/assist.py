@@ -334,7 +334,8 @@ SLA_HOURS = {"P1": 1, "P2": 4, "P3": 24, "P4": 72}
 TRIAGE_SYSTEM = """You triage facilities-management fault reports for Transguard's integrated FM service in the UAE. \
 Classify the trade, name the issue briefly, and set priority: P1 = immediate safety risk or critical service down \
 (stuck lift, flooding, fire or electrical hazard, critical cooling); P2 = disrupts operations or could become unsafe soon; \
-P3 = normal repair; P4 = cosmetic or planned. Give likely parts and a short first-time-fix checklist. If a photo is \
+P3 = normal repair; P4 = cosmetic or planned. A lift that is stopped or out of service at a hospital is always P1, even \
+with no one inside, because patients and stretchers depend on it. Give likely parts and a short first-time-fix checklist. If a photo is \
 attached, say what it shows and use it. Base everything only on the report and photo."""
 
 
@@ -380,7 +381,10 @@ def triage(req: TriageRequest):
             model=MODEL,
             contents=[types.Content(role="user", parts=parts)],
             config=types.GenerateContentConfig(
-                system_instruction=TRIAGE_SYSTEM, response_mime_type="application/json", response_json_schema=TRIAGE_SCHEMA
+                system_instruction=TRIAGE_SYSTEM,
+                response_mime_type="application/json",
+                response_json_schema=TRIAGE_SCHEMA,
+                temperature=0,  # same report, same priority: the demo must not change from run to run
             ),
         )
     except errors.APIError as e:
