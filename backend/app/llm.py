@@ -33,13 +33,15 @@ def error_message(e: errors.APIError) -> str:
 
 
 def generate_text(prompt: str, system: str) -> str:
-    """One-shot text generation (used by the board pack). Raises RuntimeError with a readable message."""
+    """One-shot text generation (guard message translation). Raises RuntimeError with a readable message.
+    Thinking is off: translation needs no reasoning, and it cuts each call from about 9 s to about 3 s."""
     c = client()
     if c is None:
         raise RuntimeError(NO_KEY_MESSAGE)
     try:
         r = c.models.generate_content(
-            model=MODEL, contents=prompt, config=types.GenerateContentConfig(system_instruction=system))
+            model=MODEL, contents=prompt,
+            config=types.GenerateContentConfig(system_instruction=system, thinking_config=types.ThinkingConfig(thinking_budget=0)))
     except errors.APIError as e:
         raise RuntimeError(error_message(e)) from e
     return (r.text or "").strip()

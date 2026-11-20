@@ -1,7 +1,10 @@
 """Transguard Workforce Intelligence API: tonight's coverage, no-show risk, backfill, what-if."""
+import json
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta
 
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import StreamingResponse
 from ortools.sat.python import cp_model
 from pydantic import BaseModel
 
@@ -206,15 +209,7 @@ def _message(worker, site_row) -> dict:
     return {"language": worker["language"], "text_local": local, "text_en": text_en, "translated_by": by}
 
 
-@router.post("/backfill/assign")
-def assign(a: Assignment):
-    s = fetch_one("select * from transguard.site where id = %s", (a.site_id,))
-    w = fetch_one("select * from transguard.worker where id = %s", (a.worker_id,))
-    if not s or not w:
-        raise HTTPException(404, "Unknown site or worker")
-    if a.worker_id not in {c["id"] for c in _candidates(s, limit=0)}:
-        raise HTTPException(409, f"{w['name']} is no longer eligible for tonight (already rostered, resting or over hours)")
-    msg = _message(w, s)
+def _write_assignment(a: Assignment, w) -> None:
     with connect() as conn:
         if a.replaces_shift_id:
             conn.execute("delete from transguard.shift where id = %s and site_id = %s", (a.replaces_shift_id, a.site_id))
@@ -222,9 +217,64 @@ def assign(a: Assignment):
                         values (%s,%s,%s,'night',%s,%s,%s,'backfill')""",
                      (a.site_id, a.worker_id, TODAY, NIGHT_START, NIGHT_END, round(w["absence_rate"], 4)))
         conn.execute("update transguard.worker set weekly_hours = weekly_hours + %s where id = %s", (SHIFT_HOURS, a.worker_id))
+
+
+def _save_message(worker_id: str, msg: dict) -> None:
+    with connect() as conn:
         conn.execute("insert into transguard.message (worker_id, language, text_en, text_local) values (%s,%s,%s,%s)",
-                     (a.worker_id, msg["language"], msg["text_en"], msg["text_local"]))
+                     (worker_id, msg["language"], msg["text_en"], msg["text_local"]))
+
+
+def _check(a: Assignment):
+    s = fetch_one("select * from transguard.site where id = %s", (a.site_id,))
+    w = fetch_one("select * from transguard.worker where id = %s", (a.worker_id,))
+    if not s or not w:
+        raise HTTPException(404, "Unknown site or worker")
+    if a.worker_id not in {c["id"] for c in _candidates(s, limit=0)}:
+        raise HTTPException(409, f"{w['name']} is no longer eligible for tonight (already rostered, resting or over hours)")
+    return s, w
+
+
+@router.post("/backfill/assign")
+def assign(a: Assignment):
+    s, w = _check(a)
+    msg = _message(w, s)
+    _write_assignment(a, w)
+    _save_message(a.worker_id, msg)
     return {"assigned": {"worker": w["name"], "site": s["name"]}, "message": msg}
+
+
+class AssignAll(BaseModel):
+    assignments: list[Assignment]
+
+
+@router.post("/backfill/assign-all")
+def assign_all(req: AssignAll):
+    """Approve a whole plan. Rosters are written one after another (no races), then every guard's message is
+    translated at the same time and streamed back as one JSON line per guard, in the order they finish."""
+    written, failed = [], []
+    for a in req.assignments:
+        try:
+            s, w = _check(a)
+        except HTTPException as e:
+            failed.append({"site_id": a.site_id, "error": e.detail})
+            continue
+        _write_assignment(a, w)
+        written.append((a, s, w))
+
+    def lines():
+        for f in failed:
+            yield json.dumps(f, ensure_ascii=False) + "\n"
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            jobs = {pool.submit(_message, w, s): (a, s, w) for a, s, w in written}
+            for job in as_completed(jobs):
+                a, s, w = jobs[job]
+                msg = job.result()
+                _save_message(a.worker_id, msg)
+                yield json.dumps({"site_id": a.site_id, "assigned": {"worker": w["name"], "site": s["name"]}, "message": msg},
+                                 ensure_ascii=False) + "\n"
+
+    return StreamingResponse(lines(), media_type="application/x-ndjson")
 
 
 class WhatIf(BaseModel):

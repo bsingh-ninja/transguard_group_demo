@@ -130,10 +130,17 @@ create table transguard.message (
 """
 
 
+_TRAINED: tuple[dict, dict] | None = None  # (model, rng state after training): reset reuses it, same data
+
+
 def seed():
+    global _TRAINED
     rnd = random.Random(11)
     rng = np.random.default_rng(11)
-    model = train_noshow(rng)
+    if _TRAINED is None:  # training is CPU-heavy (minutes on a small server), so do it once per process
+        _TRAINED = (train_noshow(rng), rng.bit_generator.state)
+    model = _TRAINED[0]
+    rng.bit_generator.state = _TRAINED[1]
 
     # Sites: spread over areas, fictional names
     sites, counters = [], {}
