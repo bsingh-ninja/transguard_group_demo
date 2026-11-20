@@ -12,7 +12,11 @@ const PRIORITY: Record<string, string> = {
   P3: "bg-accent text-white",
   P4: "bg-surface-2 text-ink",
 };
-const STATUS: Record<string, string> = { new: "bg-primary/10 text-primary", triaged: "bg-warn/15 text-warn", dispatched: "bg-ok/12 text-ok" };
+const STATUS: Record<string, string> = {
+  new: "bg-primary/10 text-primary",
+  triaged: "bg-warn/15 text-warn",
+  dispatched: "bg-ok/12 text-ok",
+};
 
 export default function Tickets() {
   const { t } = useLang();
@@ -35,7 +39,10 @@ export default function Tickets() {
   );
   const first = useCallback(() => {
     setLoadError("");
-    loadWithWake(() => load(), () => setWaking(true))
+    loadWithWake(
+      () => load(),
+      () => setWaking(true),
+    )
       .then(() => setLoaded(true))
       .catch((e) => setLoadError(String(e.message)))
       .finally(() => setWaking(false));
@@ -78,7 +85,10 @@ export default function Tickets() {
           <h1 className="display mt-2 max-w-[24ch] text-ink">{t.ticketsTitle}</h1>
           <p className="mt-3 max-w-[60ch] text-[1.0625rem] leading-relaxed text-muted">{t.ticketsIntro}</p>
         </div>
-        <button onClick={() => setSelected("new")} className="h-11 rounded-xl bg-primary px-5 text-[0.9375rem] font-semibold text-primary-fg">
+        <button
+          onClick={() => setSelected("new")}
+          className="h-11 rounded-xl bg-primary px-5 text-[0.9375rem] font-semibold text-primary-fg"
+        >
           {t.newReport}
         </button>
       </div>
@@ -102,14 +112,20 @@ export default function Tickets() {
                 className={`press-soft block w-full px-4 py-3.5 text-start transition-colors ${selected === tk.id ? "bg-accent-soft" : "hover:bg-surface-2/60"}`}
               >
                 <div className="flex items-center gap-2 text-[0.75rem]">
-                  <span className={`rounded-full px-2 py-0.5 font-bold ${STATUS[tk.status] ?? ""}`}>{t.status[tk.status as keyof typeof t.status] ?? tk.status}</span>
-                  {tk.triage && <span className={`rounded px-1.5 py-0.5 font-bold ${PRIORITY[tk.triage.priority]}`}>{tk.triage.priority}</span>}
+                  <span className={`rounded-full px-2 py-0.5 font-bold ${STATUS[tk.status] ?? ""}`}>
+                    {t.status[tk.status as keyof typeof t.status] ?? tk.status}
+                  </span>
+                  {tk.triage && (
+                    <span className={`rounded px-1.5 py-0.5 font-bold ${PRIORITY[tk.triage.priority]}`}>{tk.triage.priority}</span>
+                  )}
                   <span className="ms-auto text-muted" dir="ltr">
                     {tk.channel}, {tk.created}
                   </span>
                 </div>
                 <div className="mt-1.5 truncate font-semibold text-ink">{tk.site}</div>
-                <p dir="auto" className="line-clamp-2 text-start text-[0.875rem] leading-snug text-muted">{tk.description}</p>
+                <p dir="auto" className="line-clamp-2 text-start text-[0.875rem] leading-snug text-muted">
+                  {tk.description}
+                </p>
               </button>
             </li>
           ))}
@@ -128,7 +144,12 @@ export default function Tickets() {
             {selected === "new" ? (
               <NewReport busy={busy} onSubmit={(body) => runTriage(body)} />
             ) : ticket ? (
-              <TicketDetail ticket={ticket} busy={busy} onTriage={() => runTriage({ ticket_id: ticket.id })} onDispatch={() => dispatch(ticket)} />
+              <TicketDetail
+                ticket={ticket}
+                busy={busy}
+                onTriage={() => runTriage({ ticket_id: ticket.id })}
+                onDispatch={() => dispatch(ticket)}
+              />
             ) : null}
           </motion.section>
         </AnimatePresence>
@@ -137,7 +158,17 @@ export default function Tickets() {
   );
 }
 
-function TicketDetail({ ticket, busy, onTriage, onDispatch }: { ticket: Ticket; busy: boolean; onTriage: () => void; onDispatch: () => void }) {
+function TicketDetail({
+  ticket,
+  busy,
+  onTriage,
+  onDispatch,
+}: {
+  ticket: Ticket;
+  busy: boolean;
+  onTriage: () => void;
+  onDispatch: () => void;
+}) {
   const { t } = useLang();
   const tr = ticket.triage;
   return (
@@ -146,9 +177,16 @@ function TicketDetail({ ticket, busy, onTriage, onDispatch }: { ticket: Ticket; 
         <div className="label">
           {ticket.site}, {ticket.area}
         </div>
-        <p dir="auto" className="mt-2 text-start text-[1.0625rem] leading-relaxed text-ink">{ticket.description}</p>
+        <p dir="auto" className="mt-2 text-start text-[1.0625rem] leading-relaxed text-ink">
+          {ticket.description}
+        </p>
         {!tr && (
-          <button data-tour="triage" onClick={onTriage} disabled={busy} className="mt-5 h-11 rounded-xl bg-primary px-5 text-[0.9375rem] font-semibold text-primary-fg disabled:opacity-50">
+          <button
+            data-tour="triage"
+            onClick={onTriage}
+            disabled={busy}
+            className="mt-5 h-11 rounded-xl bg-primary px-5 text-[0.9375rem] font-semibold text-primary-fg disabled:opacity-50"
+          >
             {busy ? t.triaging : t.triage}
           </button>
         )}
@@ -228,7 +266,9 @@ function TriageCard({ tr, dispatched, busy, onDispatch }: { tr: Triage; dispatch
               transition={{ type: "spring", bounce: 0, duration: 0.45, delay: reduce ? 0 : (3 + i * 0.6) * 0.12 }}
               className="flex gap-3 text-[0.9375rem] text-ink"
             >
-              <span className="num grid size-6 shrink-0 place-items-center rounded-full bg-surface-2 text-[0.75rem] font-bold">{i + 1}</span>
+              <span className="num grid size-6 shrink-0 place-items-center rounded-full bg-surface-2 text-[0.75rem] font-bold">
+                {i + 1}
+              </span>
               {c}
             </motion.li>
           ))}
@@ -333,7 +373,12 @@ function NewReport({ busy, onSubmit }: { busy: boolean; onSubmit: (body: object)
         <label htmlFor="site" className="label mb-1.5 block">
           {t.site}
         </label>
-        <select id="site" value={site} onChange={(e) => setSite(e.target.value)} className="h-11 w-full rounded-lg bg-surface-2 px-3 text-ink">
+        <select
+          id="site"
+          value={site}
+          onChange={(e) => setSite(e.target.value)}
+          className="h-11 w-full rounded-lg bg-surface-2 px-3 text-ink"
+        >
           {sites.map((s) => (
             <option key={s.id} value={s.id}>
               {s.name}
@@ -345,7 +390,14 @@ function NewReport({ busy, onSubmit }: { busy: boolean; onSubmit: (body: object)
         <label htmlFor="desc" className="label mb-1.5 block">
           {t.whatHappened}
         </label>
-        <textarea id="desc" value={text} onChange={(e) => setText(e.target.value)} rows={4} placeholder={t.whatHappenedHint} className="w-full rounded-lg bg-surface-2 px-3 py-2.5 text-ink placeholder:text-muted" />
+        <textarea
+          id="desc"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          rows={4}
+          placeholder={t.whatHappenedHint}
+          className="w-full rounded-lg bg-surface-2 px-3 py-2.5 text-ink placeholder:text-muted"
+        />
       </div>
       <div>
         <span className="label mb-1.5 block">{t.photoOptional}</span>
@@ -365,7 +417,11 @@ function NewReport({ busy, onSubmit }: { busy: boolean; onSubmit: (body: object)
           <input type="file" accept="image/*" className="sr-only" onChange={(e) => pick(e.target.files?.[0])} />
         </label>
       </div>
-      <button type="submit" disabled={busy || !site || (!text.trim() && !photo)} className="h-11 w-full rounded-xl bg-primary text-[0.9375rem] font-semibold text-primary-fg disabled:opacity-50">
+      <button
+        type="submit"
+        disabled={busy || !site || (!text.trim() && !photo)}
+        className="h-11 w-full rounded-xl bg-primary text-[0.9375rem] font-semibold text-primary-fg disabled:opacity-50"
+      >
         {busy ? t.triaging : t.triage}
       </button>
     </form>

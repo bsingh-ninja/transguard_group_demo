@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.db import fetch_one
 from app.transguard.assist import router as transguard_assist_router
 from app.transguard.router import router as transguard_router
-from app.db import fetch_one
 
 app = FastAPI(title="Transguard demo API")
 

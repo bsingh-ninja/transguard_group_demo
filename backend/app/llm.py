@@ -2,6 +2,7 @@
 
 Key and model come from backend/.env: GEMINI_API_KEY, GEMINI_MODEL.
 """
+
 import os
 
 from dotenv import load_dotenv
@@ -40,8 +41,10 @@ def generate_text(prompt: str, system: str) -> str:
         raise RuntimeError(NO_KEY_MESSAGE)
     try:
         r = c.models.generate_content(
-            model=MODEL, contents=prompt,
-            config=types.GenerateContentConfig(system_instruction=system, thinking_config=types.ThinkingConfig(thinking_budget=0)))
+            model=MODEL,
+            contents=prompt,
+            config=types.GenerateContentConfig(system_instruction=system, thinking_config=types.ThinkingConfig(thinking_budget=0)),
+        )
     except errors.APIError as e:
         raise RuntimeError(error_message(e)) from e
     return (r.text or "").strip()

@@ -12,7 +12,11 @@ type Msg = { role: "user" | "assistant"; content: string; tools?: string[]; hrCa
 const SUGGESTIONS: Record<string, string[]> = {
   Malayalam: ["എന്റെ ശമ്പളത്തിൽ എന്തിനാണ് കുറവ്?", "ഇന്ന് രാത്രി എന്റെ ഡ്യൂട്ടി എവിടെയാണ്?", "എന്റെ വിസ എപ്പോൾ തീരും?"],
   Urdu: ["میری ڈیوٹی آج رات کہاں ہے؟", "میرا ویزا کب ختم ہو رہا ہے؟", "میری کتنی چھٹیاں باقی ہیں؟"],
-  Tagalog: ["Anong oras ang bus ko mamaya at saan ako naka-duty?", "Magkano ang sahod ko noong Oktubre?", "Ilang araw pa ang natitira kong leave?"],
+  Tagalog: [
+    "Anong oras ang bus ko mamaya at saan ako naka-duty?",
+    "Magkano ang sahod ko noong Oktubre?",
+    "Ilang araw pa ang natitira kong leave?",
+  ],
   Nepali: ["मेरो बिदा कति दिन बाँकी छ?", "आज राति मेरो ड्युटी कहाँ छ?", "मेरो भिसा कहिले सकिन्छ?"],
   Bengali: ["আজ রাতে আমার ডিউটি কোথায়?", "আমার বেতন কবে আসবে?", "আমার ছুটি কত দিন বাকি?"],
   Hindi: ["मेरी तनख्वाह में ओवरटाइम कितना है?", "आज रात मेरी ड्यूटी कहाँ है?", "मेरा वीज़ा कब खत्म होगा?"],
@@ -39,7 +43,10 @@ export default function Assistant() {
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    loadWithWake(() => getJSON<DemoWorker[]>("/transguard/assistant/workers"), () => {})
+    loadWithWake(
+      () => getJSON<DemoWorker[]>("/transguard/assistant/workers"),
+      () => {},
+    )
       .then((w) => {
         setWorkers(w);
         setWorker(w[0] ?? null);
@@ -135,7 +142,10 @@ export default function Assistant() {
             <h2 className="label mb-2">{t.assistantChecked}</h2>
             <div className="flex flex-wrap gap-2">
               {lastTools.map((x, i) => (
-                <span key={x + i} className={`rounded-full px-3 py-1 text-[0.8125rem] font-semibold ${x === "escalate_to_hr" ? "bg-primary/10 text-primary" : "bg-surface-2 text-ink"}`}>
+                <span
+                  key={x + i}
+                  className={`rounded-full px-3 py-1 text-[0.8125rem] font-semibold ${x === "escalate_to_hr" ? "bg-primary/10 text-primary" : "bg-surface-2 text-ink"}`}
+                >
                   {TOOL_LABEL[x] ?? x}
                   {x === "escalate_to_hr" && lastCase ? ` HR-${String(lastCase).padStart(5, "0")}` : ""}
                 </span>
@@ -173,7 +183,11 @@ export default function Assistant() {
                     <div
                       dir="auto"
                       className={`max-w-[82%] whitespace-pre-wrap rounded-2xl px-3.5 py-2 text-[15px] leading-relaxed shadow-sm ${
-                        m.role === "user" ? "rounded-ee-md bg-[#dcf8c6] text-[#1f2b1f]" : m.error ? "rounded-es-md bg-[#fde8e8] text-[#8a1c1c]" : "rounded-es-md bg-white text-[#282423]"
+                        m.role === "user"
+                          ? "rounded-ee-md bg-[#dcf8c6] text-[#1f2b1f]"
+                          : m.error
+                            ? "rounded-es-md bg-[#fde8e8] text-[#8a1c1c]"
+                            : "rounded-es-md bg-white text-[#282423]"
                       }`}
                     >
                       {m.content}
@@ -185,7 +199,11 @@ export default function Assistant() {
                 <div className="flex justify-start" aria-label={t.typing}>
                   <div className="flex gap-1 rounded-2xl rounded-es-md bg-white px-4 py-3 shadow-sm">
                     {[0, 1, 2].map((d) => (
-                      <span key={d} className="size-2 animate-bounce rounded-full bg-[#a39d98]" style={{ animationDelay: `${d * 120}ms` }} />
+                      <span
+                        key={d}
+                        className="size-2 animate-bounce rounded-full bg-[#a39d98]"
+                        style={{ animationDelay: `${d * 120}ms` }}
+                      />
                     ))}
                   </div>
                 </div>
@@ -211,7 +229,12 @@ export default function Assistant() {
                 disabled={busy || !worker}
                 className="h-11 min-w-0 flex-1 rounded-full bg-white px-4 text-[15px] text-[#282423] outline-none placeholder:text-[#a39d98]"
               />
-              <button type="submit" disabled={busy || !input.trim()} aria-label={t.send} className="grid size-11 place-items-center rounded-full bg-primary text-white disabled:opacity-40">
+              <button
+                type="submit"
+                disabled={busy || !input.trim()}
+                aria-label={t.send}
+                className="grid size-11 place-items-center rounded-full bg-primary text-white disabled:opacity-40"
+              >
                 <svg viewBox="0 0 24 24" className="size-5" fill="currentColor" aria-hidden="true">
                   <path d="M3 20l18-8L3 4v6l12 2-12 2z" />
                 </svg>

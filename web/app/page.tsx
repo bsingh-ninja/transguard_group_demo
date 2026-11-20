@@ -20,7 +20,10 @@ export default function Tonight() {
 
   const load = useCallback(() => {
     setError("");
-    loadWithWake(() => Promise.all([getJSON<Overview>("/transguard/overview"), getJSON<Gap[]>("/transguard/gaps")]), () => setWaking(true))
+    loadWithWake(
+      () => Promise.all([getJSON<Overview>("/transguard/overview"), getJSON<Gap[]>("/transguard/gaps")]),
+      () => setWaking(true),
+    )
       .then(([o, g]) => {
         setData(o);
         setGaps(g);
@@ -60,7 +63,13 @@ export default function Tonight() {
         </div>
         <dl className="grid grid-cols-2 gap-x-10 gap-y-5 sm:grid-cols-4">
           <Figure label={t.coverage} value={totals.coverage_pct} decimals={1} suffix="%" />
-          <Figure label={t.expected} value={totals.expected_coverage_pct} decimals={1} suffix="%" tone={totals.expected_coverage_pct < 97 ? "warn" : undefined} />
+          <Figure
+            label={t.expected}
+            value={totals.expected_coverage_pct}
+            decimals={1}
+            suffix="%"
+            tone={totals.expected_coverage_pct < 97 ? "warn" : undefined}
+          />
           <Figure label={t.onShift} value={totals.assigned} unit={`${t.of} ${totals.required}`} />
           <Figure label={t.sites} value={totals.sites} />
         </dl>
@@ -75,7 +84,11 @@ export default function Tonight() {
               {t.needsAction}
             </h2>
             {gaps.length > 0 && (
-              <button data-tour="fill-all" onClick={() => setPlanOpen(true)} className="h-10 rounded-xl bg-primary px-4 text-[0.875rem] font-semibold text-primary-fg">
+              <button
+                data-tour="fill-all"
+                onClick={() => setPlanOpen(true)}
+                className="h-10 rounded-xl bg-primary px-4 text-[0.875rem] font-semibold text-primary-fg"
+              >
                 {t.fillAll}
               </button>
             )}
@@ -88,42 +101,66 @@ export default function Tonight() {
               className="panel flex flex-col items-center px-6 py-10 text-center"
             >
               <span className="grid size-14 place-items-center rounded-full bg-ok/12 text-ok" aria-hidden="true">
-                <svg viewBox="0 0 24 24" className="size-7" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-                  <motion.path d="M5 12.5l4.5 4.5L19 7" initial={{ pathLength: reduce ? 1 : 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }} />
+                <svg
+                  viewBox="0 0 24 24"
+                  className="size-7"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <motion.path
+                    d="M5 12.5l4.5 4.5L19 7"
+                    initial={{ pathLength: reduce ? 1 : 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
+                  />
                 </svg>
               </span>
               <p className="title mt-4 text-ink">{t.allClear}</p>
               <p className="mt-1 text-[0.875rem] text-muted">
-                {t.onShift}: <span className="num" dir="ltr">{totals.assigned}</span> {t.of} <span className="num" dir="ltr">{totals.required}</span>
+                {t.onShift}:{" "}
+                <span className="num" dir="ltr">
+                  {totals.assigned}
+                </span>{" "}
+                {t.of}{" "}
+                <span className="num" dir="ltr">
+                  {totals.required}
+                </span>
               </p>
             </motion.div>
           ) : (
             <ul className="panel overflow-hidden">
               <AnimatePresence initial={false}>
-              {gaps.map((g) => (
-                <motion.li
-                  key={g.key}
-                  layout={!reduce}
-                  initial={reduce ? { opacity: 0 } : { opacity: 0, y: -8 }}
-                  animate={{ opacity: 1, y: 0, height: "auto" }}
-                  exit={reduce ? { opacity: 0 } : { opacity: 0, x: 48, height: 0, paddingTop: 0, paddingBottom: 0 }}
-                  transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-                  className={`flex items-center gap-3 overflow-hidden border-s-[3px] border-t border-t-hairline px-4 py-3.5 first:border-t-0 ${g.kind === "vacancy" ? "border-s-crit" : "border-s-warn"}`}
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className={`text-[0.75rem] font-bold ${g.kind === "vacancy" ? "text-crit" : "text-warn"}`}>
-                      {g.kind === "vacancy" ? t.vacancy : t.atRisk}
+                {gaps.map((g) => (
+                  <motion.li
+                    key={g.key}
+                    layout={!reduce}
+                    initial={reduce ? { opacity: 0 } : { opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0, height: "auto" }}
+                    exit={reduce ? { opacity: 0 } : { opacity: 0, x: 48, height: 0, paddingTop: 0, paddingBottom: 0 }}
+                    transition={{ type: "spring", bounce: 0, duration: 0.4 }}
+                    className={`flex items-center gap-3 overflow-hidden border-s-[3px] border-t border-t-hairline px-4 py-3.5 first:border-t-0 ${g.kind === "vacancy" ? "border-s-crit" : "border-s-warn"}`}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className={`text-[0.75rem] font-bold ${g.kind === "vacancy" ? "text-crit" : "text-warn"}`}>
+                        {g.kind === "vacancy" ? t.vacancy : t.atRisk}
+                      </div>
+                      <div className="truncate font-semibold text-ink">{g.site}</div>
+                      <div className="text-[0.8125rem] text-muted">
+                        {g.kind === "vacancy" ? g.area : `${g.worker}, ${t.riskOf(Math.round((g.noshow_risk ?? 0) * 100))}`}
+                      </div>
                     </div>
-                    <div className="truncate font-semibold text-ink">{g.site}</div>
-                    <div className="text-[0.8125rem] text-muted">
-                      {g.kind === "vacancy" ? g.area : `${g.worker}, ${t.riskOf(Math.round((g.noshow_risk ?? 0) * 100))}`}
-                    </div>
-                  </div>
-                  <button data-tour={`find-cover-${g.site_id}`} onClick={() => setOpen(g)} className="h-9 shrink-0 rounded-lg bg-surface-2 px-3 text-[0.8125rem] font-semibold text-ink hover:bg-border">
-                    {t.findCover}
-                  </button>
-                </motion.li>
-              ))}
+                    <button
+                      data-tour={`find-cover-${g.site_id}`}
+                      onClick={() => setOpen(g)}
+                      className="h-9 shrink-0 rounded-lg bg-surface-2 px-3 text-[0.8125rem] font-semibold text-ink hover:bg-border"
+                    >
+                      {t.findCover}
+                    </button>
+                  </motion.li>
+                ))}
               </AnimatePresence>
             </ul>
           )}

@@ -2,6 +2,7 @@
 
 All worker records (payslip, leave, visa, transport) and tickets are simulated and deterministic.
 """
+
 import base64
 import json
 import random
@@ -13,18 +14,44 @@ from pydantic import BaseModel
 
 from app.db import connect, fetch_all, fetch_one
 from app.llm import MODEL, NO_KEY_MESSAGE, client, error_message
-from app.transguard.seed import ACCOMMODATION, AREAS, TODAY, km
+from app.transguard.seed import AREAS, TODAY, km
 
 router = APIRouter(prefix="/transguard", tags=["transguard"])
 
 # ---------------------------------------------------------------- seed (called from seed.py)
 TRADES = ["HVAC", "Electrical", "Plumbing", "Civil", "Lifts", "Cleaning", "Pest control"]
-TECH_NAMES = ["Arun Pillai", "Faisal Khan", "Joel Santos", "Hari Thapa", "Sohel Rana", "Peter Okello", "Mahmoud Adel",
-              "Sunil Nair", "Waqar Ali", "Ramon Cruz", "Bishnu Rai", "Nazmul Haque", "Daniel Mugisha", "Tamer Fathy"]
+TECH_NAMES = [
+    "Arun Pillai",
+    "Faisal Khan",
+    "Joel Santos",
+    "Hari Thapa",
+    "Sohel Rana",
+    "Peter Okello",
+    "Mahmoud Adel",
+    "Sunil Nair",
+    "Waqar Ali",
+    "Ramon Cruz",
+    "Bishnu Rai",
+    "Nazmul Haque",
+    "Daniel Mugisha",
+    "Tamer Fathy",
+]
 SAMPLE_TICKETS = [
-    ("Dubai Marina Mall", "Call centre", "AC unit above food court gate 3 is dripping water onto the floor, cleaners placed a wet-floor sign."),
-    ("Deira Hospital", "Email", "Lift 2 in the outpatient block stopped between floors 3 and 4 this morning, no one inside, out of service now."),
-    ("Business Bay Office Tower", "Mobile app", "Several ceiling lights flickering in the level 12 corridor, one fully off near the fire exit."),
+    (
+        "Dubai Marina Mall",
+        "Call centre",
+        "AC unit above food court gate 3 is dripping water onto the floor, cleaners placed a wet-floor sign.",
+    ),
+    (
+        "Deira Hospital",
+        "Email",
+        "Lift 2 in the outpatient block stopped between floors 3 and 4 this morning, no one inside, out of service now.",
+    ),
+    (
+        "Business Bay Office Tower",
+        "Mobile app",
+        "Several ceiling lights flickering in the level 12 corridor, one fully off near the fire exit.",
+    ),
     ("Al Barsha Hotel", "Call centre", "Guest reports cockroaches in room 418 bathroom. Second report this week on floor 4."),
     ("JLT Office Tower", "Email", "Water leaking under the pantry sink on level 7, small pool forming on the floor."),
     ("Abu Dhabi Downtown Government Building", "Mobile app", "Cracked floor tiles at the main entrance, a visitor almost tripped."),
@@ -48,8 +75,18 @@ def seed_fm(conn, rnd: random.Random):
     for i in range(40):
         area = rnd.choice(list(AREAS))
         _, lat, lon = AREAS[area]
-        techs.append((f"T{i + 1:03d}", f"{rnd.choice(TECH_NAMES)}", TRADES[i % len(TRADES)], area,
-                      lat + rnd.uniform(-0.02, 0.02), lon + rnd.uniform(-0.02, 0.02), rnd.random() > 0.2, rnd.randint(0, 5)))
+        techs.append(
+            (
+                f"T{i + 1:03d}",
+                f"{rnd.choice(TECH_NAMES)}",
+                TRADES[i % len(TRADES)],
+                area,
+                lat + rnd.uniform(-0.02, 0.02),
+                lon + rnd.uniform(-0.02, 0.02),
+                rnd.random() > 0.2,
+                rnd.randint(0, 5),
+            )
+        )
     with conn.cursor() as cur:
         cur.executemany("insert into transguard.technician values (%s,%s,%s,%s,%s,%s,%s,%s)", techs)
         sites = {r["name"]: r["id"] for r in conn.execute("select id, name from transguard.site").fetchall()}
@@ -57,38 +94,67 @@ def seed_fm(conn, rnd: random.Random):
         for j, (site, channel, text) in enumerate(SAMPLE_TICKETS):
             if site in sites:
                 rows.append((sites[site], channel, text, False, datetime(2026, 11, 18, 8, 10) + timedelta(minutes=37 * j), "new"))
-        cur.executemany("insert into transguard.ticket (site_id, channel, description, photo, created, status) "
-                        "values (%s,%s,%s,%s,%s,%s)", rows)
+        cur.executemany(
+            "insert into transguard.ticket (site_id, channel, description, photo, created, status) values (%s,%s,%s,%s,%s,%s)", rows
+        )
 
 
 # ---------------------------------------------------------------- worker records (simulated, deterministic)
 def worker_records(worker_id: str) -> dict:
-    w = fetch_one("""select w.*, a.name as accommodation from transguard.worker w
-                     join transguard.accommodation a on a.id = w.accommodation_id where w.id = %s""", (worker_id,))
+    w = fetch_one(
+        """select w.*, a.name as accommodation from transguard.worker w
+                     join transguard.accommodation a on a.id = w.accommodation_id where w.id = %s""",
+        (worker_id,),
+    )
     if not w:
         raise HTTPException(404, "Unknown worker")
     rnd = random.Random(worker_id)
     basic = rnd.choice([1650, 1800, 1950, 2100])
     ot_hours = rnd.choice([0, 8, 12, 16, 24])
-    shift = fetch_one("""select s.name as site, s.area, sh.starts, sh.ends from transguard.shift sh
+    shift = fetch_one(
+        """select s.name as site, s.area, sh.starts, sh.ends from transguard.shift sh
                          join transguard.site s on s.id = sh.site_id where sh.worker_id = %s and sh.shift_date = %s""",
-                      (worker_id, TODAY))
+        (worker_id, TODAY),
+    )
     visa_exp = TODAY + timedelta(days=rnd.randint(20, 700))
     return {
         "worker": {"id": w["id"], "name": w["name"], "role": w["role"], "language": w["language"], "nationality": w["nationality"]},
-        "shift": ({"tonight": True, "site": shift["site"], "area": shift["area"], "starts": f"{shift['starts']:%a %d %b %H:%M}",
-                   "ends": f"{shift['ends']:%a %d %b %H:%M}"} if shift else
-                  {"tonight": False, "next": f"{(TODAY + timedelta(days=1)):%a %d %b} 19:00, site confirmed by your supervisor"}),
+        "shift": (
+            {
+                "tonight": True,
+                "site": shift["site"],
+                "area": shift["area"],
+                "starts": f"{shift['starts']:%a %d %b %H:%M}",
+                "ends": f"{shift['ends']:%a %d %b %H:%M}",
+            }
+            if shift
+            else {"tonight": False, "next": f"{(TODAY + timedelta(days=1)):%a %d %b} 19:00, site confirmed by your supervisor"}
+        ),
         "transport": {"accommodation": w["accommodation"], "night_bus": "17:45", "day_bus": "05:45", "pickup_point": "Main gate"},
-        "payslip": {"month": "October 2026", "paid_on": "28 Oct 2026", "next_pay_date": "28 Nov 2026", "currency": "AED",
-                    "basic": basic, "overtime_hours": ot_hours, "overtime_pay": round(ot_hours * 10.5, 2),
-                    "food_allowance": 300, "deductions": 0 if rnd.random() > 0.3 else 150,
-                    "deduction_reason": None, "net": None},
-        "leave": {"annual_leave_days_left": rnd.randint(2, 30), "sick_days_used_this_year": rnd.randint(0, 6),
-                  "next_approved_leave": rnd.choice([None, "12 to 26 Jan 2027"])},
-        "documents": {"residence_visa_expiry": visa_exp.isoformat(), "emirates_id_expiry": visa_exp.isoformat(),
-                      "renewal_status": "Renewal in progress with the PRO team" if (visa_exp - TODAY).days < 60 else "Not due yet",
-                      "sira_licence_expiry": w["licence_expiry"].isoformat()},
+        "payslip": {
+            "month": "October 2026",
+            "paid_on": "28 Oct 2026",
+            "next_pay_date": "28 Nov 2026",
+            "currency": "AED",
+            "basic": basic,
+            "overtime_hours": ot_hours,
+            "overtime_pay": round(ot_hours * 10.5, 2),
+            "food_allowance": 300,
+            "deductions": 0 if rnd.random() > 0.3 else 150,
+            "deduction_reason": None,
+            "net": None,
+        },
+        "leave": {
+            "annual_leave_days_left": rnd.randint(2, 30),
+            "sick_days_used_this_year": rnd.randint(0, 6),
+            "next_approved_leave": rnd.choice([None, "12 to 26 Jan 2027"]),
+        },
+        "documents": {
+            "residence_visa_expiry": visa_exp.isoformat(),
+            "emirates_id_expiry": visa_exp.isoformat(),
+            "renewal_status": "Renewal in progress with the PRO team" if (visa_exp - TODAY).days < 60 else "Not due yet",
+            "sira_licence_expiry": w["licence_expiry"].isoformat(),
+        },
     }
 
 
@@ -102,7 +168,10 @@ def _payslip(rec):
 
 ASSIST_TOOLS = {
     "get_my_shift": ("Tonight's shift or the next shift: site, area, start and end.", lambda r, a: r["shift"]),
-    "get_my_payslip": ("Last payslip: basic, overtime hours and pay, allowances, deductions with reason, net, pay dates.", lambda r, a: _payslip(r)),
+    "get_my_payslip": (
+        "Last payslip: basic, overtime hours and pay, allowances, deductions with reason, net, pay dates.",
+        lambda r, a: _payslip(r),
+    ),
     "get_my_leave": ("Annual leave days left, sick days used, next approved leave.", lambda r, a: r["leave"]),
     "get_my_documents": ("Residence visa, Emirates ID and SIRA licence expiry dates and renewal status.", lambda r, a: r["documents"]),
     "get_my_transport": ("Company bus times from the worker's accommodation and the pickup point.", lambda r, a: r["transport"]),
@@ -123,11 +192,17 @@ summary in English, then tell the guard a case was opened and someone from HR wi
 
 
 def _assist_decls():
-    decls = [types.FunctionDeclaration(name=n, description=d, parameters_json_schema={"type": "object", "properties": {}})
-             for n, (d, _) in ASSIST_TOOLS.items()]
-    decls.append(types.FunctionDeclaration(
-        name="escalate_to_hr", description="Open an HR case for a person to follow up. Summary in English, one line.",
-        parameters_json_schema={"type": "object", "properties": {"summary": {"type": "string"}}, "required": ["summary"]}))
+    decls = [
+        types.FunctionDeclaration(name=n, description=d, parameters_json_schema={"type": "object", "properties": {}})
+        for n, (d, _) in ASSIST_TOOLS.items()
+    ]
+    decls.append(
+        types.FunctionDeclaration(
+            name="escalate_to_hr",
+            description="Open an HR case for a person to follow up. Summary in English, one line.",
+            parameters_json_schema={"type": "object", "properties": {"summary": {"type": "string"}}, "required": ["summary"]},
+        )
+    )
     return [types.Tool(function_declarations=decls)]
 
 
@@ -166,9 +241,12 @@ class AssistRequest(BaseModel):
 @router.get("/assistant/workers")
 def demo_workers():
     """One rostered guard per language, for the demo picker."""
-    rows = fetch_all("""select distinct on (w.language) w.id, w.name, w.language, w.nationality
+    rows = fetch_all(
+        """select distinct on (w.language) w.id, w.name, w.language, w.nationality
                         from transguard.worker w join transguard.shift sh on sh.worker_id = w.id and sh.shift_date = %s
-                        order by w.language, w.id""", (TODAY,))
+                        order by w.language, w.id""",
+        (TODAY,),
+    )
     order = ["Malayalam", "Urdu", "Tagalog", "Nepali", "Bengali", "Hindi", "Arabic", "English"]
     return sorted(rows, key=lambda r: order.index(r["language"]) if r["language"] in order else 99)
 
@@ -179,22 +257,33 @@ def assistant(req: AssistRequest):
     if gemini is None:
         raise HTTPException(503, NO_KEY_MESSAGE)
     rec = worker_records(req.worker_id)
-    contents = [types.Content(role="model" if m["role"] == "assistant" else "user", parts=[types.Part.from_text(text=str(m["content"]))])
-                for m in req.messages if m.get("content")]
+    contents = [
+        types.Content(role="model" if m["role"] == "assistant" else "user", parts=[types.Part.from_text(text=str(m["content"]))])
+        for m in req.messages
+        if m.get("content")
+    ]
     if not contents or contents[-1].role != "user":
         raise HTTPException(400, "The last message must be from the worker")
-    system = ASSIST_SYSTEM + f"\nThe guard is {rec['worker']['name']} ({rec['worker']['role']}, {rec['worker']['nationality']}, "\
-                             f"prefers {rec['worker']['language']}). Today is {TODAY:%A %d %B %Y}.\n" \
-                             f"The guard's latest message is written in {reply_language(contents[-1].parts[0].text, rec['worker']['language'])}: " \
-                             "reply in that language."
+    system = (
+        ASSIST_SYSTEM + f"\nThe guard is {rec['worker']['name']} ({rec['worker']['role']}, {rec['worker']['nationality']}, "
+        f"prefers {rec['worker']['language']}). Today is {TODAY:%A %d %B %Y}.\n"
+        f"The guard's latest message is written in {reply_language(contents[-1].parts[0].text, rec['worker']['language'])}: "
+        "reply in that language."
+    )
     used, case_id = [], None
     try:
         for round_no in range(5):
             mode = types.FunctionCallingConfigMode.ANY if round_no == 0 else types.FunctionCallingConfigMode.AUTO
-            r = gemini.models.generate_content(model=MODEL, contents=contents, config=types.GenerateContentConfig(
-                system_instruction=system, tools=_assist_decls(),
-                tool_config=types.ToolConfig(function_calling_config=types.FunctionCallingConfig(mode=mode)),
-                automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True)))
+            r = gemini.models.generate_content(
+                model=MODEL,
+                contents=contents,
+                config=types.GenerateContentConfig(
+                    system_instruction=system,
+                    tools=_assist_decls(),
+                    tool_config=types.ToolConfig(function_calling_config=types.FunctionCallingConfig(mode=mode)),
+                    automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
+                ),
+            )
             parts = r.candidates[0].content.parts if r.candidates and r.candidates[0].content else []
             calls = [p.function_call for p in parts if p.function_call]
             if not calls:
@@ -206,13 +295,20 @@ def assistant(req: AssistRequest):
                 used.append(c.name)
                 if c.name == "escalate_to_hr":
                     with connect() as conn:
-                        case_id = conn.execute("insert into transguard.hr_case (worker_id, summary) values (%s,%s) returning id",
-                                               (req.worker_id, (c.args or {}).get("summary", ""))).fetchone()["id"]
+                        case_id = conn.execute(
+                            "insert into transguard.hr_case (worker_id, summary) values (%s,%s) returning id",
+                            (req.worker_id, (c.args or {}).get("summary", "")),
+                        ).fetchone()["id"]
                     out = {"case_id": f"HR-{case_id:05d}", "callback": "within 24 hours"}
                 else:
                     out = ASSIST_TOOLS[c.name][1](rec, c.args or {})
-                responses.append(types.Part(function_response=types.FunctionResponse(id=c.id, name=c.name,
-                                                                                    response={"result": json.loads(json.dumps(out, default=str))})))
+                responses.append(
+                    types.Part(
+                        function_response=types.FunctionResponse(
+                            id=c.id, name=c.name, response={"result": json.loads(json.dumps(out, default=str))}
+                        )
+                    )
+                )
             contents.append(types.Content(role="user", parts=responses))
         raise HTTPException(502, "The assistant took too many steps; please ask again.")
     except errors.APIError as e:
@@ -280,10 +376,13 @@ def triage(req: TriageRequest):
     if req.photo_base64:
         parts.append(types.Part.from_bytes(data=base64.b64decode(req.photo_base64), mime_type=req.photo_mime or "image/jpeg"))
     try:
-        r = gemini.models.generate_content(model=MODEL, contents=[types.Content(role="user", parts=parts)],
-                                           config=types.GenerateContentConfig(system_instruction=TRIAGE_SYSTEM,
-                                                                              response_mime_type="application/json",
-                                                                              response_json_schema=TRIAGE_SCHEMA))
+        r = gemini.models.generate_content(
+            model=MODEL,
+            contents=[types.Content(role="user", parts=parts)],
+            config=types.GenerateContentConfig(
+                system_instruction=TRIAGE_SYSTEM, response_mime_type="application/json", response_json_schema=TRIAGE_SCHEMA
+            ),
+        )
     except errors.APIError as e:
         raise HTTPException(502, error_message(e)) from e
     result = json.loads(r.text)
@@ -294,15 +393,24 @@ def triage(req: TriageRequest):
     result |= {"sla_hours": sla, "due_by": f"{(datetime(2026, 11, 18, 10, 0) + timedelta(hours=sla)):%a %H:%M}", "site": site["name"]}
     if best:
         dist = km(site["lat"], site["lon"], best["lat"], best["lon"])
-        result["technician"] = {"id": best["id"], "name": best["name"], "trade": best["trade"], "area": best["area"],
-                                "distance_km": round(dist, 1), "eta_min": int(10 + dist * 2.2), "jobs_today": best["jobs_today"]}
+        result["technician"] = {
+            "id": best["id"],
+            "name": best["name"],
+            "trade": best["trade"],
+            "area": best["area"],
+            "distance_km": round(dist, 1),
+            "eta_min": int(10 + dist * 2.2),
+            "jobs_today": best["jobs_today"],
+        }
     with connect() as conn:
         if req.ticket_id:
             conn.execute("update transguard.ticket set triage = %s, status = 'triaged' where id = %s", (json.dumps(result), req.ticket_id))
         else:
-            row = conn.execute("""insert into transguard.ticket (site_id, channel, description, photo, created, status, triage)
+            row = conn.execute(
+                """insert into transguard.ticket (site_id, channel, description, photo, created, status, triage)
                                   values (%s,'Supervisor app',%s,%s,%s,'triaged',%s) returning id""",
-                               (site_id, text, bool(req.photo_base64), datetime(2026, 11, 18, 10, 0), json.dumps(result))).fetchone()
+                (site_id, text, bool(req.photo_base64), datetime(2026, 11, 18, 10, 0), json.dumps(result)),
+            ).fetchone()
             result["ticket_id"] = row["id"]
     return result
 
@@ -315,8 +423,9 @@ class Dispatch(BaseModel):
 @router.post("/tickets/dispatch")
 def dispatch(d: Dispatch):
     with connect() as conn:
-        n = conn.execute("update transguard.ticket set status = 'dispatched', technician_id = %s where id = %s",
-                         (d.technician_id, d.ticket_id)).rowcount
+        n = conn.execute(
+            "update transguard.ticket set status = 'dispatched', technician_id = %s where id = %s", (d.technician_id, d.ticket_id)
+        ).rowcount
         conn.execute("update transguard.technician set jobs_today = jobs_today + 1 where id = %s", (d.technician_id,))
     if not n:
         raise HTTPException(404, "Unknown ticket")

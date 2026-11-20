@@ -57,25 +57,65 @@ export default function WhatIf() {
         className="panel grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-[1.4fr_repeat(4,1fr)_auto] lg:items-end"
       >
         <Field id="area" label={t.area}>
-          <select id="area" value={area} onChange={(e) => setArea(e.target.value)} className="h-11 w-full rounded-lg bg-surface-2 px-3 text-ink">
+          <select
+            id="area"
+            value={area}
+            onChange={(e) => setArea(e.target.value)}
+            className="h-11 w-full rounded-lg bg-surface-2 px-3 text-ink"
+          >
             {AREAS.map((a) => (
               <option key={a}>{a}</option>
             ))}
           </select>
         </Field>
         <Field id="guards" label={t.guardsNeeded}>
-          <input id="guards" type="number" min={1} max={200} value={guards} onChange={(e) => setGuards(+e.target.value)} className="num h-11 w-full rounded-lg bg-surface-2 px-3 text-ink" />
+          <input
+            id="guards"
+            type="number"
+            min={1}
+            max={200}
+            value={guards}
+            onChange={(e) => setGuards(+e.target.value)}
+            className="num h-11 w-full rounded-lg bg-surface-2 px-3 text-ink"
+          />
         </Field>
         <Field id="female" label={t.femaleNeeded}>
-          <input id="female" type="number" min={0} max={guards} value={female} onChange={(e) => setFemale(+e.target.value)} className="num h-11 w-full rounded-lg bg-surface-2 px-3 text-ink" />
+          <input
+            id="female"
+            type="number"
+            min={0}
+            max={guards}
+            value={female}
+            onChange={(e) => setFemale(+e.target.value)}
+            className="num h-11 w-full rounded-lg bg-surface-2 px-3 text-ink"
+          />
         </Field>
         <Field id="firstaid" label={t.firstAidNeeded}>
-          <input id="firstaid" type="number" min={0} max={guards} value={firstAid} onChange={(e) => setFirstAid(+e.target.value)} className="num h-11 w-full rounded-lg bg-surface-2 px-3 text-ink" />
+          <input
+            id="firstaid"
+            type="number"
+            min={0}
+            max={guards}
+            value={firstAid}
+            onChange={(e) => setFirstAid(+e.target.value)}
+            className="num h-11 w-full rounded-lg bg-surface-2 px-3 text-ink"
+          />
         </Field>
         <Field id="start" label={t.startDate}>
-          <input id="start" type="date" value={start} onChange={(e) => setStart(e.target.value)} className="num h-11 w-full rounded-lg bg-surface-2 px-3 text-ink" />
+          <input
+            id="start"
+            type="date"
+            value={start}
+            onChange={(e) => setStart(e.target.value)}
+            className="num h-11 w-full rounded-lg bg-surface-2 px-3 text-ink"
+          />
         </Field>
-        <button type="submit" data-tour="check-staffing" disabled={busy} className="h-11 rounded-xl bg-primary px-5 text-[0.9375rem] font-semibold text-primary-fg disabled:opacity-50">
+        <button
+          type="submit"
+          data-tour="check-staffing"
+          disabled={busy}
+          className="h-11 rounded-xl bg-primary px-5 text-[0.9375rem] font-semibold text-primary-fg disabled:opacity-50"
+        >
           {t.run}
         </button>
       </form>
@@ -90,7 +130,9 @@ export default function WhatIf() {
       )}
 
       {result && (
-        <div className={`grid gap-6 transition-opacity duration-300 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] ${busy ? "opacity-60" : ""}`}>
+        <div
+          className={`grid gap-6 transition-opacity duration-300 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] ${busy ? "opacity-60" : ""}`}
+        >
           <section className="panel p-6">
             <div className="flex flex-wrap items-end gap-x-12 gap-y-5">
               <div>

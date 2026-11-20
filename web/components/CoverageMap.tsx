@@ -5,7 +5,10 @@ import { Overview, Site } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
 // Schematic map of the coast from Abu Dhabi to Dubai (equirectangular, scaled by cos(latitude))
-const LON0 = 54.28, LON1 = 55.52, LAT0 = 24.28, LAT1 = 25.38;
+const LON0 = 54.28,
+  LON1 = 55.52,
+  LAT0 = 24.28,
+  LAT1 = 25.38;
 const W = 1000;
 const K = Math.cos((24.83 * Math.PI) / 180);
 const H = Math.round((W * (LAT1 - LAT0)) / ((LON1 - LON0) * K));
@@ -14,9 +17,23 @@ const y = (lat: number) => ((LAT1 - lat) / (LAT1 - LAT0)) * H;
 
 // Approximate coastline, south-west to north-east (land lies to the south-east)
 const COAST: [number, number][] = [
-  [24.44, 54.28], [24.53, 54.33], [24.58, 54.42], [24.62, 54.52], [24.68, 54.62], [24.76, 54.74], [24.86, 54.86],
-  [24.95, 54.96], [25.02, 55.03], [25.07, 55.08], [25.11, 55.12], [25.16, 55.18], [25.21, 55.23], [25.25, 55.27],
-  [25.29, 55.3], [25.33, 55.35], [25.38, 55.4],
+  [24.44, 54.28],
+  [24.53, 54.33],
+  [24.58, 54.42],
+  [24.62, 54.52],
+  [24.68, 54.62],
+  [24.76, 54.74],
+  [24.86, 54.86],
+  [24.95, 54.96],
+  [25.02, 55.03],
+  [25.07, 55.08],
+  [25.11, 55.12],
+  [25.16, 55.18],
+  [25.21, 55.23],
+  [25.25, 55.27],
+  [25.29, 55.3],
+  [25.33, 55.35],
+  [25.38, 55.4],
 ];
 const LAND = [...COAST.map(([la, lo]) => `${x(lo)},${y(la)}`), `${W},${y(25.38)}`, `${W},${H}`, `0,${H}`, `0,${y(24.44)}`].join(" ");
 
@@ -57,7 +74,14 @@ export default function CoverageMap({ data, onPick }: { data: Overview; onPick: 
         </text>
         {data.accommodation.map((a) => (
           <g key={a.name}>
-            <rect x={x(a.lon) - 6} y={y(a.lat) - 6} width="12" height="12" transform={`rotate(45 ${x(a.lon)} ${y(a.lat)})`} fill="var(--accent)" />
+            <rect
+              x={x(a.lon) - 6}
+              y={y(a.lat) - 6}
+              width="12"
+              height="12"
+              transform={`rotate(45 ${x(a.lon)} ${y(a.lat)})`}
+              fill="var(--accent)"
+            />
             <title>{a.name}</title>
           </g>
         ))}
@@ -69,7 +93,11 @@ export default function CoverageMap({ data, onPick }: { data: Overview; onPick: 
               <AnimatePresence>
                 {s.status === "short" && (
                   <motion.circle
-                    cx={x(s.lon)} cy={y(s.lat)} fill="none" stroke="var(--crit)" strokeWidth="2"
+                    cx={x(s.lon)}
+                    cy={y(s.lat)}
+                    fill="none"
+                    stroke="var(--crit)"
+                    strokeWidth="2"
                     initial={{ r: reduce ? 16 : 6, opacity: 0 }}
                     animate={{ r: 16, opacity: 0.45 }}
                     exit={{ r: reduce ? 16 : 28, opacity: 0 }}
@@ -79,7 +107,10 @@ export default function CoverageMap({ data, onPick }: { data: Overview; onPick: 
               </AnimatePresence>
               {/* covered posts are static; open posts pop in, and spring down to "covered" when a guard is assigned */}
               <motion.circle
-                cx={x(s.lon)} cy={y(s.lat)} stroke="var(--surface)" strokeWidth="1.5"
+                cx={x(s.lon)}
+                cy={y(s.lat)}
+                stroke="var(--surface)"
+                strokeWidth="1.5"
                 fill={st.fill}
                 style={{ transition: "fill 500ms ease" }}
                 initial={open && !reduce ? { r: 0, opacity: 1 } : false}
@@ -95,9 +126,22 @@ export default function CoverageMap({ data, onPick }: { data: Overview; onPick: 
             const right = s.lon < 55.25;
             const lx = x(s.lon) + (right ? 22 : -22);
             return (
-              <motion.text key={s.id} x={lx} y={y(s.lat) + 5 + (i % 2) * 2} fontSize="17" fontWeight="700" textAnchor={right ? "start" : "end"}
-                fill={s.status === "short" ? "var(--crit)" : "var(--warn)"} stroke="var(--map-land)" strokeWidth="5" paintOrder="stroke"
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.35, delay: reduce ? 0 : 0.45 }}>
+              <motion.text
+                key={s.id}
+                x={lx}
+                y={y(s.lat) + 5 + (i % 2) * 2}
+                fontSize="17"
+                fontWeight="700"
+                textAnchor={right ? "start" : "end"}
+                fill={s.status === "short" ? "var(--crit)" : "var(--warn)"}
+                stroke="var(--map-land)"
+                strokeWidth="5"
+                paintOrder="stroke"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.35, delay: reduce ? 0 : 0.45 }}
+              >
                 {s.name}
               </motion.text>
             );

@@ -164,9 +164,24 @@ export type WhatIfResult = {
 };
 
 export const AREAS = [
-  "Dubai Marina", "JLT", "Downtown Dubai", "Business Bay", "DIFC", "Al Barsha", "Deira", "Al Qusais",
-  "Dubai Silicon Oasis", "Jebel Ali", "Al Quoz", "Airport Freezone", "Abu Dhabi Downtown", "Al Reem Island",
-  "Khalifa City", "Mussafah", "Yas Island", "Saadiyat Island",
+  "Dubai Marina",
+  "JLT",
+  "Downtown Dubai",
+  "Business Bay",
+  "DIFC",
+  "Al Barsha",
+  "Deira",
+  "Al Qusais",
+  "Dubai Silicon Oasis",
+  "Jebel Ali",
+  "Al Quoz",
+  "Airport Freezone",
+  "Abu Dhabi Downtown",
+  "Al Reem Island",
+  "Khalifa City",
+  "Mussafah",
+  "Yas Island",
+  "Saadiyat Island",
 ];
 
 export type DemoWorker = { id: string; name: string; language: string; nationality: string };

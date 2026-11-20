@@ -14,7 +14,10 @@ function Bubble({ result }: { result: AssignResult }) {
   const rtl = ["Arabic", "Urdu"].includes(result.message.language);
   return (
     <>
-      <div className="mt-2 max-w-[92%] rounded-2xl rounded-ss-md bg-[#dcf8c6] px-4 py-3 text-[0.9375rem] leading-relaxed text-[#1f2b1f]" dir={rtl ? "rtl" : "ltr"}>
+      <div
+        className="mt-2 max-w-[92%] rounded-2xl rounded-ss-md bg-[#dcf8c6] px-4 py-3 text-[0.9375rem] leading-relaxed text-[#1f2b1f]"
+        dir={rtl ? "rtl" : "ltr"}
+      >
         {result.message.text_local}
       </div>
       <div className="mt-2 text-[0.75rem] text-muted">
@@ -46,8 +49,21 @@ export function MessageCard({ result }: { result: AssignResult }) {
 function Tick() {
   return (
     <span className="grid size-5 place-items-center rounded-full bg-ok text-white" aria-hidden="true">
-      <svg viewBox="0 0 24 24" className="size-3" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round">
-        <motion.path d="M5 12.5l4.5 4.5L19 7" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.35, ease: "easeOut" }} />
+      <svg
+        viewBox="0 0 24 24"
+        className="size-3"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="3.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <motion.path
+          d="M5 12.5l4.5 4.5L19 7"
+          initial={{ pathLength: 0 }}
+          animate={{ pathLength: 1 }}
+          transition={{ duration: 0.35, ease: "easeOut" }}
+        />
       </svg>
     </span>
   );
@@ -63,7 +79,19 @@ function RowsSkeleton({ n, h }: { n: number; h: string }) {
   );
 }
 
-function CandidateRow({ c, best, index, onApprove, busy }: { c: Candidate; best: boolean; index: number; onApprove: () => void; busy: boolean }) {
+function CandidateRow({
+  c,
+  best,
+  index,
+  onApprove,
+  busy,
+}: {
+  c: Candidate;
+  best: boolean;
+  index: number;
+  onApprove: () => void;
+  busy: boolean;
+}) {
   const { t } = useLang();
   const reduce = useReducedMotion();
   return (
@@ -131,7 +159,13 @@ export function FindCoverSheet({ gap, onClose, onDone }: { gap: Gap; onClose: ()
     setBusy(true);
     setError("");
     try {
-      setResult(await postJSON<AssignResult>("/transguard/backfill/assign", { site_id: gap.site_id, worker_id: c.id, replaces_shift_id: gap.shift_id ?? null }));
+      setResult(
+        await postJSON<AssignResult>("/transguard/backfill/assign", {
+          site_id: gap.site_id,
+          worker_id: c.id,
+          replaces_shift_id: gap.shift_id ?? null,
+        }),
+      );
       onDone();
     } catch (e) {
       setError((e as Error).message);
@@ -169,7 +203,9 @@ export function PlanSheet({ onClose, onDone }: { onClose: () => void; onDone: ()
   const [error, setError] = useState("");
 
   useEffect(() => {
-    postJSON<Plan>("/transguard/backfill/plan").then(setPlan).catch((e) => setError(String(e.message)));
+    postJSON<Plan>("/transguard/backfill/plan")
+      .then(setPlan)
+      .catch((e) => setError(String(e.message)));
   }, []);
 
   const total = plan?.assignments.length ?? 0;
@@ -204,7 +240,13 @@ export function PlanSheet({ onClose, onDone }: { onClose: () => void; onDone: ()
     }
   };
 
-  const sub = !plan ? t.loading : started ? (done === total ? t.allNotified : t.notifiedOf(done, total)) : t.planSub(plan.assignments.length, plan.solve_ms);
+  const sub = !plan
+    ? t.loading
+    : started
+      ? done === total
+        ? t.allNotified
+        : t.notifiedOf(done, total)
+      : t.planSub(plan.assignments.length, plan.solve_ms);
   return (
     <Sheet title={t.planTitle} sub={sub} onClose={onClose}>
       {error && <p className="mb-3 rounded-md bg-crit/5 p-3 text-sm text-crit">{error}</p>}
@@ -215,11 +257,15 @@ export function PlanSheet({ onClose, onDone }: { onClose: () => void; onDone: ()
           <dl className="mb-4 grid grid-cols-2 gap-3">
             <div className="rounded-lg bg-surface-2 p-3">
               <dt className="label">{t.totalCommute}</dt>
-              <dd className="num mt-1 text-[1.25rem] font-bold" dir="ltr">{plan.total_commute_km} km</dd>
+              <dd className="num mt-1 text-[1.25rem] font-bold" dir="ltr">
+                {plan.total_commute_km} km
+              </dd>
             </div>
             <div className="rounded-lg bg-surface-2 p-3">
               <dt className="label">{t.totalOvertime}</dt>
-              <dd className="num mt-1 text-[1.25rem] font-bold" dir="ltr">AED {plan.total_overtime_aed}</dd>
+              <dd className="num mt-1 text-[1.25rem] font-bold" dir="ltr">
+                AED {plan.total_overtime_aed}
+              </dd>
             </div>
           </dl>
           <ul className="divide-y divide-hairline">
@@ -245,7 +291,11 @@ export function PlanSheet({ onClose, onDone }: { onClose: () => void; onDone: ()
                           {a.candidate.commute_km} km, {a.candidate.language}
                         </div>
                       </div>
-                      {r ? <Tick /> : busy ? <span className="size-5 animate-spin rounded-full border-2 border-border border-t-accent" aria-hidden="true" /> : null}
+                      {r ? (
+                        <Tick />
+                      ) : busy ? (
+                        <span className="size-5 animate-spin rounded-full border-2 border-border border-t-accent" aria-hidden="true" />
+                      ) : null}
                     </div>
                   </div>
                   {failed[a.key] && <p className="mt-2 text-[0.8125rem] text-crit">{failed[a.key]}</p>}
@@ -266,18 +316,31 @@ export function PlanSheet({ onClose, onDone }: { onClose: () => void; onDone: ()
             })}
           </ul>
           {!started ? (
-            <button data-tour="approve-all" onClick={approveAll} className="mt-5 h-11 w-full rounded-xl bg-primary text-[0.9375rem] font-semibold text-primary-fg">
+            <button
+              data-tour="approve-all"
+              onClick={approveAll}
+              className="mt-5 h-11 w-full rounded-xl bg-primary text-[0.9375rem] font-semibold text-primary-fg"
+            >
               {t.approveAll}
             </button>
           ) : (
-            <div className="relative mt-5 h-11 overflow-hidden rounded-xl bg-surface-2" role="progressbar" aria-valuemin={0} aria-valuemax={total} aria-valuenow={done} aria-label={sub}>
+            <div
+              className="relative mt-5 h-11 overflow-hidden rounded-xl bg-surface-2"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={total}
+              aria-valuenow={done}
+              aria-label={sub}
+            >
               <motion.div
                 className="h-full bg-ok/25"
                 initial={{ width: "0%" }}
                 animate={{ width: `${Math.max(done / Math.max(total, 1), 0.04) * 100}%` }}
                 transition={SPRING}
               />
-              <span className="absolute inset-0 grid place-items-center text-[0.875rem] font-semibold text-ink">{busy ? t.notifying : sub}</span>
+              <span className="absolute inset-0 grid place-items-center text-[0.875rem] font-semibold text-ink">
+                {busy ? t.notifying : sub}
+              </span>
             </div>
           )}
         </>

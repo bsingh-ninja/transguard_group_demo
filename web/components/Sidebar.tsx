@@ -23,7 +23,8 @@ function useTheme() {
     try {
       saved = localStorage.getItem("tg-theme");
     } catch {}
-    const initial: Theme = saved === "light" || saved === "dark" ? saved : matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    const initial: Theme =
+      saved === "light" || saved === "dark" ? saved : matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
     if (saved) document.documentElement.dataset.theme = saved;
     setTheme(initial);
   }, []);
@@ -94,7 +95,11 @@ export default function Sidebar() {
         {nav.map((n) => {
           const on = active(n.href);
           const cls = `press-soft relative flex shrink-0 items-center gap-3 rounded-lg px-3 py-2.5 text-[14.5px] transition-colors ${
-            on ? "font-semibold text-white" : n.ready ? "text-sidebar-fg/80 hover:bg-white/6 hover:text-white" : "cursor-not-allowed text-sidebar-fg/35"
+            on
+              ? "font-semibold text-white"
+              : n.ready
+                ? "text-sidebar-fg/80 hover:bg-white/6 hover:text-white"
+                : "cursor-not-allowed text-sidebar-fg/35"
           }`;
           const body = (
             <>
@@ -109,7 +114,16 @@ export default function Sidebar() {
                   <span className="absolute inset-y-2 start-0 hidden w-[3px] rounded-full bg-primary lg:block" />
                 </motion.span>
               )}
-              <svg viewBox="0 0 24 24" className="relative size-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" strokeLinecap="round" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                className="relative size-[18px] shrink-0"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinejoin="round"
+                strokeLinecap="round"
+                aria-hidden="true"
+              >
                 {ICONS[n.key]}
               </svg>
               <span className="relative">{n.label}</span>

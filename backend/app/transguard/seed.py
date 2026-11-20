@@ -3,13 +3,13 @@
 Everything here is simulated (fictional site and worker names); only the area names and the
 brand are real. Run: .venv/bin/python -m app.transguard.seed   (deterministic: fixed seed)
 """
+
 import json
 import math
 import random
 from datetime import date, datetime, timedelta
 
 import numpy as np
-
 import psycopg
 
 from app.db import connect, fetch_all
@@ -20,54 +20,108 @@ NIGHT_END = datetime(2026, 11, 19, 7, 0)
 PAYDAY = 28  # salaries paid on the 28th
 
 AREAS = {  # area: (emirate, lat, lon)
-    "Downtown Dubai": ("Dubai", 25.197, 55.274), "Business Bay": ("Dubai", 25.186, 55.263),
-    "DIFC": ("Dubai", 25.212, 55.282), "Dubai Marina": ("Dubai", 25.080, 55.140),
-    "JLT": ("Dubai", 25.069, 55.142), "Al Barsha": ("Dubai", 25.113, 55.200),
-    "Deira": ("Dubai", 25.271, 55.307), "Al Qusais": ("Dubai", 25.279, 55.374),
-    "Dubai Silicon Oasis": ("Dubai", 25.122, 55.380), "Jebel Ali": ("Dubai", 25.011, 55.112),
-    "Al Quoz": ("Dubai", 25.140, 55.230), "Airport Freezone": ("Dubai", 25.253, 55.365),
-    "Abu Dhabi Downtown": ("Abu Dhabi", 24.466, 54.367), "Al Reem Island": ("Abu Dhabi", 24.495, 54.405),
-    "Khalifa City": ("Abu Dhabi", 24.420, 54.575), "Mussafah": ("Abu Dhabi", 24.350, 54.500),
-    "Yas Island": ("Abu Dhabi", 24.488, 54.607), "Saadiyat Island": ("Abu Dhabi", 24.540, 54.435),
+    "Downtown Dubai": ("Dubai", 25.197, 55.274),
+    "Business Bay": ("Dubai", 25.186, 55.263),
+    "DIFC": ("Dubai", 25.212, 55.282),
+    "Dubai Marina": ("Dubai", 25.080, 55.140),
+    "JLT": ("Dubai", 25.069, 55.142),
+    "Al Barsha": ("Dubai", 25.113, 55.200),
+    "Deira": ("Dubai", 25.271, 55.307),
+    "Al Qusais": ("Dubai", 25.279, 55.374),
+    "Dubai Silicon Oasis": ("Dubai", 25.122, 55.380),
+    "Jebel Ali": ("Dubai", 25.011, 55.112),
+    "Al Quoz": ("Dubai", 25.140, 55.230),
+    "Airport Freezone": ("Dubai", 25.253, 55.365),
+    "Abu Dhabi Downtown": ("Abu Dhabi", 24.466, 54.367),
+    "Al Reem Island": ("Abu Dhabi", 24.495, 54.405),
+    "Khalifa City": ("Abu Dhabi", 24.420, 54.575),
+    "Mussafah": ("Abu Dhabi", 24.350, 54.500),
+    "Yas Island": ("Abu Dhabi", 24.488, 54.607),
+    "Saadiyat Island": ("Abu Dhabi", 24.540, 54.435),
 }
 ACCOMMODATION = [  # name, lat, lon
-    ("Al Quoz Residence", 25.130, 55.235), ("Jebel Ali Village", 25.000, 55.100),
-    ("Muhaisnah Residence", 25.270, 55.420), ("DIP Residence", 24.980, 55.170),
-    ("Mussafah Residence", 24.345, 54.495), ("Al Shahama Residence", 24.540, 54.680),
+    ("Al Quoz Residence", 25.130, 55.235),
+    ("Jebel Ali Village", 25.000, 55.100),
+    ("Muhaisnah Residence", 25.270, 55.420),
+    ("DIP Residence", 24.980, 55.170),
+    ("Mussafah Residence", 24.345, 54.495),
+    ("Al Shahama Residence", 24.540, 54.680),
 ]
 SITE_TYPES = {  # type: (label, night guards min, max, share)
-    "mall": ("Mall", 8, 14, 0.15), "tower": ("Office Tower", 3, 6, 0.30), "hotel": ("Hotel", 4, 8, 0.15),
-    "hospital": ("Hospital", 6, 10, 0.08), "government": ("Government Building", 4, 8, 0.12),
-    "bank": ("Bank Branch", 2, 3, 0.10), "residential": ("Residences", 2, 4, 0.10),
+    "mall": ("Mall", 8, 14, 0.15),
+    "tower": ("Office Tower", 3, 6, 0.30),
+    "hotel": ("Hotel", 4, 8, 0.15),
+    "hospital": ("Hospital", 6, 10, 0.08),
+    "government": ("Government Building", 4, 8, 0.12),
+    "bank": ("Bank Branch", 2, 3, 0.10),
+    "residential": ("Residences", 2, 4, 0.10),
 }
 NATIONALITIES = [  # nationality, language, share, first names, last names
-    ("Indian", "Malayalam", 0.20, ["Anil", "Biju", "Rajesh", "Suresh", "Vinod", "Jithin", "Shaji", "Deepa", "Anju"],
-     ["Kumar", "Nair", "Pillai", "Menon", "Varghese", "Thomas", "Joseph"]),
-    ("Indian", "Hindi", 0.12, ["Rahul", "Amit", "Sanjay", "Vikas", "Manoj", "Priya", "Pooja"],
-     ["Sharma", "Singh", "Yadav", "Verma", "Gupta", "Mishra"]),
-    ("Pakistani", "Urdu", 0.18, ["Imran", "Bilal", "Usman", "Kashif", "Asif", "Tariq", "Nadia"],
-     ["Khan", "Ahmed", "Hussain", "Malik", "Qureshi", "Butt"]),
-    ("Nepali", "Nepali", 0.14, ["Ram", "Bikash", "Suman", "Prakash", "Dipak", "Sita", "Gita"],
-     ["Gurung", "Thapa", "Rai", "Magar", "Tamang", "Shrestha"]),
-    ("Bangladeshi", "Bengali", 0.10, ["Rahim", "Karim", "Jamal", "Shakil", "Rafiq", "Nasrin"],
-     ["Hossain", "Rahman", "Islam", "Uddin", "Akter"]),
-    ("Filipino", "Tagalog", 0.10, ["Mark", "Jayson", "Rommel", "Arnel", "Maricel", "Joy", "Liza"],
-     ["Santos", "Reyes", "Cruz", "Bautista", "Garcia", "Mendoza"]),
-    ("Ugandan", "English", 0.08, ["Brian", "Isaac", "Moses", "Ronald", "Esther", "Grace"],
-     ["Okello", "Mugisha", "Ssempala", "Nakato", "Kato"]),
-    ("Egyptian", "Arabic", 0.08, ["Mohamed", "Ahmed", "Mahmoud", "Mostafa", "Sara", "Mona"],
-     ["Hassan", "Ibrahim", "Saeed", "Farouk", "Mansour"]),
+    (
+        "Indian",
+        "Malayalam",
+        0.20,
+        ["Anil", "Biju", "Rajesh", "Suresh", "Vinod", "Jithin", "Shaji", "Deepa", "Anju"],
+        ["Kumar", "Nair", "Pillai", "Menon", "Varghese", "Thomas", "Joseph"],
+    ),
+    (
+        "Indian",
+        "Hindi",
+        0.12,
+        ["Rahul", "Amit", "Sanjay", "Vikas", "Manoj", "Priya", "Pooja"],
+        ["Sharma", "Singh", "Yadav", "Verma", "Gupta", "Mishra"],
+    ),
+    (
+        "Pakistani",
+        "Urdu",
+        0.18,
+        ["Imran", "Bilal", "Usman", "Kashif", "Asif", "Tariq", "Nadia"],
+        ["Khan", "Ahmed", "Hussain", "Malik", "Qureshi", "Butt"],
+    ),
+    (
+        "Nepali",
+        "Nepali",
+        0.14,
+        ["Ram", "Bikash", "Suman", "Prakash", "Dipak", "Sita", "Gita"],
+        ["Gurung", "Thapa", "Rai", "Magar", "Tamang", "Shrestha"],
+    ),
+    (
+        "Bangladeshi",
+        "Bengali",
+        0.10,
+        ["Rahim", "Karim", "Jamal", "Shakil", "Rafiq", "Nasrin"],
+        ["Hossain", "Rahman", "Islam", "Uddin", "Akter"],
+    ),
+    (
+        "Filipino",
+        "Tagalog",
+        0.10,
+        ["Mark", "Jayson", "Rommel", "Arnel", "Maricel", "Joy", "Liza"],
+        ["Santos", "Reyes", "Cruz", "Bautista", "Garcia", "Mendoza"],
+    ),
+    (
+        "Ugandan",
+        "English",
+        0.08,
+        ["Brian", "Isaac", "Moses", "Ronald", "Esther", "Grace"],
+        ["Okello", "Mugisha", "Ssempala", "Nakato", "Kato"],
+    ),
+    (
+        "Egyptian",
+        "Arabic",
+        0.08,
+        ["Mohamed", "Ahmed", "Mahmoud", "Mostafa", "Sara", "Mona"],
+        ["Hassan", "Ibrahim", "Saeed", "Farouk", "Mansour"],
+    ),
 ]
-FEMALE = {"Deepa", "Anju", "Priya", "Pooja", "Nadia", "Sita", "Gita", "Nasrin", "Maricel", "Joy", "Liza",
-          "Esther", "Grace", "Sara", "Mona"}
+FEMALE = {"Deepa", "Anju", "Priya", "Pooja", "Nadia", "Sita", "Gita", "Nasrin", "Maricel", "Joy", "Liza", "Esther", "Grace", "Sara", "Mona"}
 # Planted for the demo: these sites are short tonight
 SHORT_SITES = {"Dubai Marina Mall": 2, "Deira Hospital": 1, "Abu Dhabi Downtown Government Building": 1}
 
 
 def km(a_lat, a_lon, b_lat, b_lon):
     p = math.pi / 180
-    h = (math.sin((b_lat - a_lat) * p / 2) ** 2
-         + math.cos(a_lat * p) * math.cos(b_lat * p) * math.sin((b_lon - a_lon) * p / 2) ** 2)
+    h = math.sin((b_lat - a_lat) * p / 2) ** 2 + math.cos(a_lat * p) * math.cos(b_lat * p) * math.sin((b_lon - a_lon) * p / 2) ** 2
     return 2 * 6371 * math.asin(math.sqrt(h))
 
 
@@ -88,10 +142,15 @@ def features_row(w, commute):
 def train_noshow(rng: np.random.Generator):
     """Fit a logistic regression on simulated shift history (200k shifts)."""
     n = 200_000
-    X = np.column_stack([
-        rng.beta(1.2, 30, n), rng.gamma(2.2, 9, n), rng.integers(0, 7, n),
-        np.clip(rng.normal(4, 5, n), 0, 20), rng.integers(0, 31, n),
-    ])
+    X = np.column_stack(
+        [
+            rng.beta(1.2, 30, n),
+            rng.gamma(2.2, 9, n),
+            rng.integers(0, 7, n),
+            np.clip(rng.normal(4, 5, n), 0, 20),
+            rng.integers(0, 31, n),
+        ]
+    )
     p = 1 / (1 + np.exp(-(X @ TRUE_COEF + TRUE_BIAS)))
     y = (rng.random(n) < p).astype(float)
     mu, sd = X.mean(0), X.std(0)
@@ -102,8 +161,16 @@ def train_noshow(rng: np.random.Generator):
         w -= 0.5 * Z.T @ (q - y) / n
         b -= 0.5 * (q - y).mean()
     q = 1 / (1 + np.exp(-(Z @ w + b)))
-    return {"features": FEATURES, "mean": mu.tolist(), "std": sd.tolist(), "coef": w.tolist(), "bias": b,
-            "trained_on": n, "base_rate": float(y.mean()), "train_log_loss": float(-np.mean(y * np.log(q) + (1 - y) * np.log(1 - q)))}
+    return {
+        "features": FEATURES,
+        "mean": mu.tolist(),
+        "std": sd.tolist(),
+        "coef": w.tolist(),
+        "bias": b,
+        "trained_on": n,
+        "base_rate": float(y.mean()),
+        "train_log_loss": float(-np.mean(y * np.log(q) + (1 - y) * np.log(1 - q))),
+    }
 
 
 def predict(model, row):
@@ -162,8 +229,11 @@ def seed():
     types = list(SITE_TYPES)
     weights = [SITE_TYPES[t][3] for t in types]
     area_names = list(AREAS)
-    planted = [("Dubai Marina Mall", "mall", "Dubai Marina"), ("Deira Hospital", "hospital", "Deira"),
-               ("Abu Dhabi Downtown Government Building", "government", "Abu Dhabi Downtown")]
+    planted = [
+        ("Dubai Marina Mall", "mall", "Dubai Marina"),
+        ("Deira Hospital", "hospital", "Deira"),
+        ("Abu Dhabi Downtown Government Building", "government", "Abu Dhabi Downtown"),
+    ]
     for name, typ, area in planted:
         em, lat, lon = AREAS[area]
         sites.append((name, typ, area, em, lat + 0.004, lon - 0.003))
@@ -181,9 +251,21 @@ def seed():
     for i, (name, typ, area, em, lat, lon) in enumerate(sites):
         lo, hi = SITE_TYPES[typ][1], SITE_TYPES[typ][2]
         req = 12 if name == "Dubai Marina Mall" else rnd.randint(lo, hi)
-        site_rows.append({"id": f"S{i + 1:03d}", "name": name, "type": typ, "area": area, "emirate": em, "lat": lat, "lon": lon,
-                          "night_required": req, "needs_female": (1 if typ in ("mall", "hospital", "government") else 0),
-                          "needs_k9": typ == "mall" and rnd.random() < 0.3, "needs_first_aid": typ in ("hospital", "mall")})
+        site_rows.append(
+            {
+                "id": f"S{i + 1:03d}",
+                "name": name,
+                "type": typ,
+                "area": area,
+                "emirate": em,
+                "lat": lat,
+                "lon": lon,
+                "night_required": req,
+                "needs_female": (1 if typ in ("mall", "hospital", "government") else 0),
+                "needs_k9": typ == "mall" and rnd.random() < 0.3,
+                "needs_first_aid": typ in ("hospital", "mall"),
+            }
+        )
 
     # Workers
     workers = []
@@ -197,14 +279,24 @@ def seed():
         if lang == "Arabic":
             skills.append("arabic")
         days = rnd.choices([rnd.randint(-8, 0), rnd.randint(1, 30), rnd.randint(31, 720)], [0.01, 0.04, 0.95])[0]
-        workers.append({
-            "id": f"G{i + 1:04d}", "name": f"{first} {rnd.choice(lasts)}", "nationality": nat, "language": lang,
-            "gender": gender, "role": "Supervisor" if rnd.random() < 0.06 else "Security Guard",
-            "licence_expiry": TODAY + timedelta(days=days), "skills": skills, "accommodation_id": acc,
-            "weekly_hours": rnd.choice([36, 42, 48, 48, 48, 54, 60]), "consecutive_nights": rnd.randint(0, 6),
-            "absence_rate": float(min(0.4, rng.beta(1.2, 30))), "status": rnd.choices(["active", "leave", "bench"], [0.889, 0.1, 0.011])[0],
-            "phone_last4": f"{rnd.randint(0, 9999):04d}",
-        })
+        workers.append(
+            {
+                "id": f"G{i + 1:04d}",
+                "name": f"{first} {rnd.choice(lasts)}",
+                "nationality": nat,
+                "language": lang,
+                "gender": gender,
+                "role": "Supervisor" if rnd.random() < 0.06 else "Security Guard",
+                "licence_expiry": TODAY + timedelta(days=days),
+                "skills": skills,
+                "accommodation_id": acc,
+                "weekly_hours": rnd.choice([36, 42, 48, 48, 48, 54, 60]),
+                "consecutive_nights": rnd.randint(0, 6),
+                "absence_rate": float(min(0.4, rng.beta(1.2, 30))),
+                "status": rnd.choices(["active", "leave", "bench"], [0.889, 0.1, 0.011])[0],
+                "phone_last4": f"{rnd.randint(0, 9999):04d}",
+            }
+        )
     # Day shift today (ends 19:00): these guards cannot take tonight's night shift (rest rule)
     active = [w for w in workers if w["status"] == "active" and w["licence_expiry"] > TODAY]
     rnd.shuffle(active)
@@ -218,7 +310,9 @@ def seed():
     shifts = []
     for s in site_rows:
         need = s["night_required"] - SHORT_SITES.get(s["name"], 0)
-        near = sorted(pool, key=lambda w: km(s["lat"], s["lon"], ACCOMMODATION[w["accommodation_id"]][1], ACCOMMODATION[w["accommodation_id"]][2]))
+        near = sorted(
+            pool, key=lambda w: km(s["lat"], s["lon"], ACCOMMODATION[w["accommodation_id"]][1], ACCOMMODATION[w["accommodation_id"]][2])
+        )
         chosen = []
         females_needed = s["needs_female"]
         for w in near:
@@ -245,31 +339,39 @@ def seed():
         if len(risky) == 6:
             break
     profiles = [(0.24, 6, 60), (0.19, 7, 60), (0.21, 5, 54), (0.17, 6, 60), (0.26, 4, 54), (0.18, 6, 54)]
-    for w, (rate, nights, hours) in zip(risky, profiles):
+    for w, (rate, nights, hours) in zip(risky, profiles, strict=False):
         w["absence_rate"], w["consecutive_nights"], w["weekly_hours"] = rate, nights, hours
 
     with connect() as conn:
         conn.execute(DDL)
         with conn.cursor() as cur:
-            cur.executemany("insert into transguard.accommodation values (%s,%s,%s,%s)",
-                            [(i, *a) for i, a in enumerate(ACCOMMODATION)])
+            cur.executemany("insert into transguard.accommodation values (%s,%s,%s,%s)", [(i, *a) for i, a in enumerate(ACCOMMODATION)])
             cur.executemany(
                 "insert into transguard.site values (%(id)s,%(name)s,%(type)s,%(area)s,%(emirate)s,%(lat)s,%(lon)s,"
-                "%(night_required)s,%(needs_female)s,%(needs_k9)s,%(needs_first_aid)s)", site_rows)
+                "%(night_required)s,%(needs_female)s,%(needs_k9)s,%(needs_first_aid)s)",
+                site_rows,
+            )
             cur.executemany(
                 "insert into transguard.worker values (%(id)s,%(name)s,%(nationality)s,%(language)s,%(gender)s,%(role)s,"
                 "%(licence_expiry)s,%(skills)s,%(accommodation_id)s,%(weekly_hours)s,%(last_shift_end)s,"
-                "%(consecutive_nights)s,%(absence_rate)s,%(status)s,%(phone_last4)s)", workers)
+                "%(consecutive_nights)s,%(absence_rate)s,%(status)s,%(phone_last4)s)",
+                workers,
+            )
             cur.executemany(
                 "insert into transguard.shift (site_id, worker_id, shift_date, period, starts, ends, noshow_risk, source) "
                 "values (%s,%s,%s,'night',%s,%s,%s,'roster')",
-                [(sid, w["id"], TODAY, NIGHT_START, NIGHT_END, round(predict(model, features_row(w, c)), 4)) for sid, w, c in shifts])
-            cur.execute("insert into transguard.model values ('noshow', %s), ('rng_after_training', %s)",
-                        (json.dumps(model), json.dumps(rng_state)))
+                [(sid, w["id"], TODAY, NIGHT_START, NIGHT_END, round(predict(model, features_row(w, c)), 4)) for sid, w, c in shifts],
+            )
+            cur.execute(
+                "insert into transguard.model values ('noshow', %s), ('rng_after_training', %s)", (json.dumps(model), json.dumps(rng_state))
+            )
         from app.transguard.assist import seed_fm  # FM technicians and sample tickets (phase 5)
+
         seed_fm(conn, random.Random(23))
-    print(f"Seeded transguard: {len(site_rows)} sites, {len(workers)} workers, {len(shifts)} night shifts; "
-          f"model trained on {model['trained_on']:,} shifts (base rate {model['base_rate']:.1%}).")
+    print(
+        f"Seeded transguard: {len(site_rows)} sites, {len(workers)} workers, {len(shifts)} night shifts; "
+        f"model trained on {model['trained_on']:,} shifts (base rate {model['base_rate']:.1%})."
+    )
 
 
 if __name__ == "__main__":

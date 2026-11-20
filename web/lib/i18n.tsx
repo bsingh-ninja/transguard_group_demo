@@ -56,7 +56,8 @@ const DICT = {
     // what-if
     whatIfLabel: "New contract",
     whatIfTitle: "Can we staff a new contract?",
-    whatIfIntro: "Pick the site and the crew it needs. The optimiser builds the best crew from guards who are free, and shows what you would need to hire.",
+    whatIfIntro:
+      "Pick the site and the crew it needs. The optimiser builds the best crew from guards who are free, and shows what you would need to hire.",
     area: "Area",
     guardsNeeded: "Guards needed",
     femaleNeeded: "Female guards",
@@ -72,7 +73,8 @@ const DICT = {
     firstAidWord: "first aid",
     crewSample: "Sample of the crew",
     assistantTitle: "Answers for every guard, in their own language",
-    assistantIntro: "Guards ask about pay, leave, visa, shifts and buses on their phone. The assistant answers from their own records and hands anything else to HR.",
+    assistantIntro:
+      "Guards ask about pay, leave, visa, shifts and buses on their phone. The assistant answers from their own records and hands anything else to HR.",
     chooseGuard: "Choose a guard",
     tryAsking: "Try asking, in their language",
     assistantChecked: "What the assistant checked",
@@ -85,7 +87,8 @@ const DICT = {
     send: "Send",
     phoneOf: (n: string) => `${n}'s phone`,
     ticketsTitle: "Every fault report, triaged and assigned",
-    ticketsIntro: "Reports from the call centre, email and the app are classified by trade and priority, with likely parts and a checklist, and the nearest qualified technician is assigned.",
+    ticketsIntro:
+      "Reports from the call centre, email and the app are classified by trade and priority, with likely parts and a checklist, and the nearest qualified technician is assigned.",
     newReport: "New report",
     status: { new: "New", triaged: "Triaged", dispatched: "Dispatched" },
     triage: "Triage with AI",
@@ -185,7 +188,8 @@ const DICT = {
     firstAidWord: "الإسعافات الأولية",
     crewSample: "عينة من الفريق",
     assistantTitle: "إجابات لكل حارس بلغته",
-    assistantIntro: "يسأل الحراس عن الراتب والإجازة والتأشيرة والنوبات والحافلات من هواتفهم. يجيب المساعد من سجلاتهم ويحيل ما عدا ذلك إلى الموارد البشرية.",
+    assistantIntro:
+      "يسأل الحراس عن الراتب والإجازة والتأشيرة والنوبات والحافلات من هواتفهم. يجيب المساعد من سجلاتهم ويحيل ما عدا ذلك إلى الموارد البشرية.",
     chooseGuard: "اختر حارساً",
     tryAsking: "جرّب السؤال بلغته",
     assistantChecked: "ما راجعه المساعد",
@@ -198,7 +202,8 @@ const DICT = {
     send: "إرسال",
     phoneOf: (n: string) => `هاتف ${n}`,
     ticketsTitle: "كل بلاغ أعطال مصنّف ومُسند",
-    ticketsIntro: "تُصنَّف البلاغات الواردة من مركز الاتصال والبريد والتطبيق حسب التخصص والأولوية، مع القطع المحتملة وقائمة خطوات، ويُسنَد أقرب فني مؤهل.",
+    ticketsIntro:
+      "تُصنَّف البلاغات الواردة من مركز الاتصال والبريد والتطبيق حسب التخصص والأولوية، مع القطع المحتملة وقائمة خطوات، ويُسنَد أقرب فني مؤهل.",
     newReport: "بلاغ جديد",
     status: { new: "جديد", triaged: "مصنّف", dispatched: "أُرسل الفني" },
     triage: "تصنيف بالذكاء الاصطناعي",

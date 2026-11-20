@@ -4,6 +4,7 @@ Usage: python scripts/smoke.py [base_url]   (default http://127.0.0.1:8002)
 Checks tonight's seeded scenario after a fresh seed or `POST /transguard/reset`. Read-only:
 it plans but never assigns. The assistant and triage need Gemini and are not called.
 """
+
 import json
 import sys
 import urllib.request
@@ -12,8 +13,9 @@ BASE = (sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8002").rstrip("/
 
 
 def call(path, body=None, method=None):
-    req = urllib.request.Request(BASE + path, data=None if body is None else json.dumps(body).encode(),
-                                 headers={"Content-Type": "application/json"}, method=method)
+    req = urllib.request.Request(
+        BASE + path, data=None if body is None else json.dumps(body).encode(), headers={"Content-Type": "application/json"}, method=method
+    )
     with urllib.request.urlopen(req, timeout=120) as r:
         return json.loads(r.read())
 
@@ -31,6 +33,7 @@ check("4 open posts, 3 likely no-shows", (t["vacancies"], t["at_risk"]) == (4, 3
 plan = call("/transguard/backfill/plan", {}, "POST")
 check("optimiser fills every gap", len(plan["assignments"]) >= 6 and plan["total_overtime_aed"] == 0)
 w = call("/transguard/what-if", {"area": "Dubai Marina", "guards": 40, "female_guards": 6, "first_aid": 10, "start": "2026-12-01"})
-check("new contract: 28 covered, 12 to hire, 2 short on female guards",
-      (w["covered"], w["hiring_gap"], w["female_shortfall"]) == (28, 12, 2))
+check(
+    "new contract: 28 covered, 12 to hire, 2 short on female guards", (w["covered"], w["hiring_gap"], w["female_shortfall"]) == (28, 12, 2)
+)
 print("Transguard API smoke test passed")

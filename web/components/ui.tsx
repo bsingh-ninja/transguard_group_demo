@@ -75,7 +75,17 @@ export function ErrorBox({ message, onRetry }: { message: string; onRetry?: () =
  * A number that springs from what is on screen to its new value (interruptible: re-targets from the live value).
  * `from` sets the first value shown, so a figure can count up when it first appears.
  */
-export function AnimatedNumber({ value, decimals = 0, suffix = "", from }: { value: number; decimals?: number; suffix?: string; from?: number }) {
+export function AnimatedNumber({
+  value,
+  decimals = 0,
+  suffix = "",
+  from,
+}: {
+  value: number;
+  decimals?: number;
+  suffix?: string;
+  from?: number;
+}) {
   const reduce = useReducedMotion();
   const [shown, setShown] = useState(from ?? value);
   const live = useRef(from ?? value);
@@ -104,8 +114,20 @@ export function AnimatedNumber({ value, decimals = 0, suffix = "", from }: { val
   );
 }
 
-export function Figure({ label, value, decimals = 0, suffix = "", unit, tone }: {
-  label: string; value: number; decimals?: number; suffix?: string; unit?: string; tone?: "crit" | "warn";
+export function Figure({
+  label,
+  value,
+  decimals = 0,
+  suffix = "",
+  unit,
+  tone,
+}: {
+  label: string;
+  value: number;
+  decimals?: number;
+  suffix?: string;
+  unit?: string;
+  tone?: "crit" | "warn";
 }) {
   const color = tone === "crit" ? "text-crit" : tone === "warn" ? "text-warn" : "text-ink";
   return (
@@ -192,7 +214,9 @@ export function Sheet({ title, sub, onClose, children }: { title: string; sub?: 
   const up = () => {
     if (!grab.current) return;
     grab.current = null;
-    const h = hist.current, a = h[0], b = h[h.length - 1];
+    const h = hist.current,
+      a = h[0],
+      b = h[h.length - 1];
     const v = b.t > a.t ? ((b.x - a.x) / (b.t - a.t)) * 1000 : 0;
     settle(sign * (x.get() + project(v)) > width / 2 ? sign * width : 0, v);
   };
@@ -216,7 +240,12 @@ export function Sheet({ title, sub, onClose, children }: { title: string; sub?: 
           <h2 className="title text-ink">{title}</h2>
           {sub && <p className="mt-1 text-[0.875rem] text-muted">{sub}</p>}
         </div>
-        <button ref={closeRef} onClick={() => settle(sign * width)} aria-label={t.close} className="grid size-9 place-items-center rounded-full bg-surface-2 text-ink hover:bg-border">
+        <button
+          ref={closeRef}
+          onClick={() => settle(sign * width)}
+          aria-label={t.close}
+          className="grid size-9 place-items-center rounded-full bg-surface-2 text-ink hover:bg-border"
+        >
           <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true">
             <path d="M6 6l12 12M18 6L6 18" />
           </svg>
