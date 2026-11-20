@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Sans_Arabic, Open_Sans } from "next/font/google";
+import Presenter from "@/components/Presenter";
 import Sidebar from "@/components/Sidebar";
 import { LangProvider } from "@/lib/i18n";
 import "./globals.css";
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               <div className="mx-auto w-full max-w-[1240px]">{children}</div>
             </main>
           </div>
+          <Presenter />
         </LangProvider>
       </body>
     </html>

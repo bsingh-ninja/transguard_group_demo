@@ -34,7 +34,7 @@ In one line: *fewer empty posts, less overtime and faster answers, for a workfor
 |---|---|---|---|
 | 1 | Tonight | Open the app | "702 posts tonight. 4 are empty and 3 guards are likely not to show; coverage falls from 99.4% to 94.6% if nothing is done." |
 | 2 | Tonight | **Find cover** on Abu Dhabi Downtown Government Building, then **Approve and notify** | "Ranked replacements with travel, overtime and reliability. Anju Varghese is assigned and gets the message in Malayalam, with the English beside it." |
-| 3 | Tonight | **Fill all gaps** | "The optimiser solves every gap at once, in milliseconds, with no overtime." Leave the plan open; approving all seven takes about a minute, because each message is translated (see Notes). |
+| 3 | Tonight | **Fill all gaps**, then **Approve all and notify** | "The optimiser solves every gap at once, in milliseconds, with no overtime. Every guard is told in their own language." The messages arrive in about 5 seconds and every post turns covered. |
 | 4 | New contract | 40 guards, Dubai Marina, **Check staffing** | "28 from our own free guards, 12 to hire, 2 short on female guards, and where the crew comes from." |
 | 5 | Worker assistant | Pick Asif Khan (Urdu), tap the first question | "He asks in Urdu and gets his shift back in Urdu, from his roster. Payslip, leave and visa work the same way." |
 | 6 | FM tickets | Deira Hospital lift, **Triage with AI**, **Dispatch technician** | "P1, respond within an hour, likely parts, checklist, and the nearest lift technician assigned." |
@@ -47,7 +47,8 @@ Workforce rostering and backfill in shadow mode for one region or one client clu
 ## Notes before presenting
 
 - Run `./start.sh --reseed` before the meeting, and check that the Gemini key in `backend/.env` works (the assistant, triage and guard messages need it).
-- **Approve all and notify** sends each guard's message through Gemini one after another, about 55 seconds for 7 guards. Live, approve a single gap with **Find cover**, or let the sheet finish while you talk.
+- **Presenter mode:** press **P** (or open the app with `?present=1`) for a small overlay with this walkthrough: step, what to click (highlighted on screen) and what to say. **←** and **→** move between steps and open the right screen; **Esc** hides it.
+- The hosted demo sleeps when idle: open the link a couple of minutes before the meeting.
 
 ## Run
 
