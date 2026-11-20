@@ -434,8 +434,3 @@ def dispatch(d: Dispatch):
     if not n:
         raise HTTPException(404, "Unknown ticket")
     return {"status": "dispatched"}
-
-
-@router.get("/sites/list")
-def site_list():
-    return fetch_all("select id, name, area from transguard.site order by name")

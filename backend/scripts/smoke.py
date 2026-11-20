@@ -30,6 +30,7 @@ check("health", call("/health") == {"status": "ok"})
 t = call("/transguard/overview")["totals"]
 check("120 sites, 702 posts, 698 assigned", (t["sites"], t["required"], t["assigned"]) == (120, 702, 698))
 check("4 open posts, 3 likely no-shows", (t["vacancies"], t["at_risk"]) == (4, 3))
+check("site list for the new fault report form", len(call("/transguard/sites/list")) == 120)
 plan = call("/transguard/backfill/plan", {}, "POST")
 check("optimiser fills every gap", len(plan["assignments"]) >= 6 and plan["total_overtime_aed"] == 0)
 w = call("/transguard/what-if", {"area": "Dubai Marina", "guards": 40, "female_guards": 6, "first_aid": 10, "start": "2026-12-01"})

@@ -70,6 +70,11 @@ def overview():
     }
 
 
+@router.get("/sites/list")  # must come before /sites/{site_id}, or "list" is read as a site id
+def site_list():
+    return fetch_all("select id, name, area from transguard.site order by name")
+
+
 @router.get("/sites/{site_id}")
 def site(site_id: str):
     s = fetch_one("select * from transguard.site where id = %s", (site_id,))
