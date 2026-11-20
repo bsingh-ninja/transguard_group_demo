@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { motion, useReducedMotion } from "motion/react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useLang } from "@/lib/i18n";
@@ -41,6 +42,7 @@ export default function Sidebar() {
   const { t, lang, setLang } = useLang();
   const path = usePathname();
   const { theme, toggle } = useTheme();
+  const reduce = useReducedMotion();
   const nav = [
     { href: "/", key: "tonight", label: t.navTonight, ready: true },
     { href: "/what-if", key: "whatif", label: t.navWhatIf, ready: true },
@@ -92,15 +94,25 @@ export default function Sidebar() {
         {nav.map((n) => {
           const on = active(n.href);
           const cls = `press-soft relative flex shrink-0 items-center gap-3 rounded-lg px-3 py-2.5 text-[14.5px] transition-colors ${
-            on ? "bg-white/10 font-semibold text-white" : n.ready ? "text-sidebar-fg/80 hover:bg-white/6 hover:text-white" : "cursor-not-allowed text-sidebar-fg/35"
+            on ? "font-semibold text-white" : n.ready ? "text-sidebar-fg/80 hover:bg-white/6 hover:text-white" : "cursor-not-allowed text-sidebar-fg/35"
           }`;
           const body = (
             <>
-              {on && <span className="absolute inset-y-2 start-0 hidden w-[3px] rounded-full bg-primary lg:block" aria-hidden="true" />}
-              <svg viewBox="0 0 24 24" className="size-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" strokeLinecap="round" aria-hidden="true">
+              {on && (
+                // one highlight that slides between items instead of jumping
+                <motion.span
+                  layoutId="nav-active"
+                  transition={reduce ? { duration: 0 } : { type: "spring", bounce: 0, duration: 0.4 }}
+                  className="absolute inset-0 rounded-lg bg-white/10"
+                  aria-hidden="true"
+                >
+                  <span className="absolute inset-y-2 start-0 hidden w-[3px] rounded-full bg-primary lg:block" />
+                </motion.span>
+              )}
+              <svg viewBox="0 0 24 24" className="relative size-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" strokeLinecap="round" aria-hidden="true">
                 {ICONS[n.key]}
               </svg>
-              {n.label}
+              <span className="relative">{n.label}</span>
             </>
           );
           return n.ready ? (

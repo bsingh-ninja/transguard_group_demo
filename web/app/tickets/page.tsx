@@ -2,7 +2,8 @@
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
-import { getJSON, postJSON, SiteOption, Ticket, Triage } from "@/lib/api";
+import { ErrorBox, Skeleton, WakingUp } from "@/components/ui";
+import { getJSON, loadWithWake, postJSON, SiteOption, Ticket, Triage } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
 const PRIORITY: Record<string, string> = {
@@ -20,6 +21,9 @@ export default function Tickets() {
   const [selected, setSelected] = useState<number | "new" | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [loaded, setLoaded] = useState(false);
+  const [waking, setWaking] = useState(false);
+  const [loadError, setLoadError] = useState("");
 
   const load = useCallback(
     (select?: number) =>
@@ -29,9 +33,14 @@ export default function Tickets() {
       }),
     [],
   );
-  useEffect(() => {
-    load();
+  const first = useCallback(() => {
+    setLoadError("");
+    loadWithWake(() => load(), () => setWaking(true))
+      .then(() => setLoaded(true))
+      .catch((e) => setLoadError(String(e.message)))
+      .finally(() => setWaking(false));
   }, [load]);
+  useEffect(first, [first]);
 
   const ticket = typeof selected === "number" ? tickets.find((x) => x.id === selected) : undefined;
   const runTriage = async (body: object, then?: (id: number) => void) => {
@@ -58,6 +67,9 @@ export default function Tickets() {
     }
   };
 
+  if (loadError) return <ErrorBox message={loadError} onRetry={first} />;
+  if (!loaded && waking) return <WakingUp />;
+
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -72,10 +84,19 @@ export default function Tickets() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[380px_minmax(0,1fr)]">
-        <ul className="panel max-h-[70vh] overflow-y-auto">
+        <ul className="panel max-h-[70vh] overflow-y-auto" aria-busy={!loaded}>
+          {!loaded &&
+            [0, 1, 2, 3, 4].map((i) => (
+              <li key={i} className="space-y-2 border-t border-hairline px-4 py-4 first:border-t-0">
+                <Skeleton className="h-3.5 w-32" />
+                <Skeleton className="h-4 w-48" />
+                <Skeleton className="h-3.5 w-full" />
+              </li>
+            ))}
           {tickets.map((tk) => (
             <li key={tk.id} className="border-t border-hairline first:border-t-0">
               <button
+                data-tour={/^lift/i.test(tk.description) ? "ticket-lift" : undefined}
                 onClick={() => setSelected(tk.id)}
                 aria-current={selected === tk.id}
                 className={`press-soft block w-full px-4 py-3.5 text-start transition-colors ${selected === tk.id ? "bg-accent-soft" : "hover:bg-surface-2/60"}`}
@@ -127,23 +148,55 @@ function TicketDetail({ ticket, busy, onTriage, onDispatch }: { ticket: Ticket; 
         </div>
         <p dir="auto" className="mt-2 text-start text-[1.0625rem] leading-relaxed text-ink">{ticket.description}</p>
         {!tr && (
-          <button onClick={onTriage} disabled={busy} className="mt-5 h-11 rounded-xl bg-primary px-5 text-[0.9375rem] font-semibold text-primary-fg disabled:opacity-50">
+          <button data-tour="triage" onClick={onTriage} disabled={busy} className="mt-5 h-11 rounded-xl bg-primary px-5 text-[0.9375rem] font-semibold text-primary-fg disabled:opacity-50">
             {busy ? t.triaging : t.triage}
           </button>
         )}
       </div>
+      {!tr && busy && (
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]" aria-busy="true">
+          <Skeleton className="h-[340px] rounded-xl" />
+          <div className="space-y-5">
+            <Skeleton className="h-[120px] rounded-xl" />
+            <Skeleton className="h-[200px] rounded-xl" />
+          </div>
+        </div>
+      )}
       {tr && <TriageCard tr={tr} dispatched={ticket.status === "dispatched"} busy={busy} onDispatch={onDispatch} />}
     </div>
   );
 }
 
+/** Reveals its child a beat after the previous one, so the triage reads in order */
+function Step({ i, children, className = "" }: { i: number; children: React.ReactNode; className?: string }) {
+  const reduce = useReducedMotion();
+  return (
+    <motion.div
+      initial={reduce ? { opacity: 0 } : { opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: "spring", bounce: 0, duration: 0.45, delay: reduce ? 0 : i * 0.12 }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 function TriageCard({ tr, dispatched, busy, onDispatch }: { tr: Triage; dispatched: boolean; busy: boolean; onDispatch: () => void }) {
   const { t } = useLang();
+  const reduce = useReducedMotion();
   return (
-    <div className="rise grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+    <div className="grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
       <div className="panel p-6">
-        <div className="flex items-start gap-4">
-          <span className={`figure rounded-xl px-3 py-2 text-[1.5rem] ${PRIORITY[tr.priority]}`}>{tr.priority}</span>
+        <Step i={0} className="flex items-start gap-4">
+          <motion.span
+            initial={reduce ? false : { scale: 0.6, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", bounce: 0.3, duration: 0.5 }}
+            className={`figure rounded-xl px-3 py-2 text-[1.5rem] ${PRIORITY[tr.priority]}`}
+          >
+            {tr.priority}
+          </motion.span>
           <div className="min-w-0">
             <div className="label">{tr.trade}</div>
             <h2 className="title mt-0.5 text-ink">{tr.issue}</h2>
@@ -151,26 +204,38 @@ function TriageCard({ tr, dispatched, busy, onDispatch }: { tr: Triage; dispatch
               {t.respondWithin(tr.sla_hours)}, {t.dueBy} {tr.due_by}
             </p>
           </div>
-        </div>
-        {tr.safety_risk && <p className="mt-4 rounded-lg bg-crit/8 px-3 py-2 text-[0.875rem] font-semibold text-crit">{t.safetyRisk}</p>}
-        <p className="mt-4 text-[0.9375rem] text-ink/85">{tr.priority_reason}</p>
-        {tr.photo_observations && (
-          <p className="mt-3 text-[0.875rem] text-muted">
-            <span className="font-semibold text-ink">{t.photoShows}</span> {tr.photo_observations}
-          </p>
+        </Step>
+        {tr.safety_risk && (
+          <Step i={1}>
+            <p className="mt-4 rounded-lg bg-crit/8 px-3 py-2 text-[0.875rem] font-semibold text-crit">{t.safetyRisk}</p>
+          </Step>
         )}
-        <h3 className="label mt-5">{t.checklist}</h3>
+        <Step i={2}>
+          <p className="mt-4 text-[0.9375rem] text-ink/85">{tr.priority_reason}</p>
+          {tr.photo_observations && (
+            <p className="mt-3 text-[0.875rem] text-muted">
+              <span className="font-semibold text-ink">{t.photoShows}</span> {tr.photo_observations}
+            </p>
+          )}
+          <h3 className="label mt-5">{t.checklist}</h3>
+        </Step>
         <ol className="mt-2 space-y-2">
           {tr.checklist.map((c, i) => (
-            <li key={i} className="flex gap-3 text-[0.9375rem] text-ink">
+            <motion.li
+              key={i}
+              initial={reduce ? { opacity: 0 } : { opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ type: "spring", bounce: 0, duration: 0.45, delay: reduce ? 0 : (3 + i * 0.6) * 0.12 }}
+              className="flex gap-3 text-[0.9375rem] text-ink"
+            >
               <span className="num grid size-6 shrink-0 place-items-center rounded-full bg-surface-2 text-[0.75rem] font-bold">{i + 1}</span>
               {c}
-            </li>
+            </motion.li>
           ))}
         </ol>
       </div>
       <div className="space-y-5">
-        <div className="panel p-6">
+        <Step i={1.5} className="panel p-6">
           <h3 className="label">{t.likelyParts}</h3>
           <div className="mt-3 flex flex-wrap gap-2">
             {tr.likely_parts.map((p) => (
@@ -179,9 +244,9 @@ function TriageCard({ tr, dispatched, busy, onDispatch }: { tr: Triage; dispatch
               </span>
             ))}
           </div>
-        </div>
+        </Step>
         {tr.technician && (
-          <div className="panel p-6">
+          <Step i={2.5} className="panel p-6">
             <h3 className="label">{t.technician}</h3>
             <div className="mt-2 text-[1.125rem] font-bold text-ink">{tr.technician.name}</div>
             <div className="text-[0.875rem] text-muted">
@@ -192,16 +257,31 @@ function TriageCard({ tr, dispatched, busy, onDispatch }: { tr: Triage; dispatch
               <Stat label={t.eta} value={`${tr.technician.eta_min} min`} />
               <Stat label={t.jobsToday} value={String(tr.technician.jobs_today)} />
             </dl>
-            {dispatched ? (
-              <p className="mt-5 flex items-center gap-2 text-[0.9375rem] font-semibold text-ok">
-                <span className="size-2 rounded-full bg-ok" /> {t.dispatched}
-              </p>
-            ) : (
-              <button onClick={onDispatch} disabled={busy} className="mt-5 h-11 w-full rounded-xl bg-primary text-[0.9375rem] font-semibold text-primary-fg disabled:opacity-50">
-                {t.dispatch}
-              </button>
-            )}
-          </div>
+            <AnimatePresence mode="wait" initial={false}>
+              {dispatched ? (
+                <motion.p
+                  key="sent"
+                  initial={reduce ? { opacity: 0 } : { opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ type: "spring", bounce: 0, duration: 0.4 }}
+                  className="mt-5 flex items-center gap-2 text-[0.9375rem] font-semibold text-ok"
+                >
+                  <span className="size-2 rounded-full bg-ok" /> {t.dispatched}
+                </motion.p>
+              ) : (
+                <motion.button
+                  key="send"
+                  exit={{ opacity: 0 }}
+                  data-tour="dispatch"
+                  onClick={onDispatch}
+                  disabled={busy}
+                  className="mt-5 h-11 w-full rounded-xl bg-primary text-[0.9375rem] font-semibold text-primary-fg disabled:opacity-50"
+                >
+                  {t.dispatch}
+                </motion.button>
+              )}
+            </AnimatePresence>
+          </Step>
         )}
       </div>
     </div>

@@ -4,28 +4,81 @@ import { animate, motion, useMotionValue, useReducedMotion } from "motion/react"
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLang } from "@/lib/i18n";
 
+export function Skeleton({ className = "" }: { className?: string }) {
+  return <div className={`skeleton ${className}`} aria-hidden="true" />;
+}
+
+/** Tonight-shaped placeholder: headline, four figures, map and action list */
 export function Loading() {
   return (
-    <div className="space-y-4" aria-busy="true">
-      <div className="h-10 w-2/3 animate-pulse rounded bg-surface-2" />
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="h-[520px] animate-pulse rounded-xl bg-surface-2" />
-        <div className="h-[520px] animate-pulse rounded-xl bg-surface-2" />
+    <div className="space-y-8" aria-busy="true">
+      <div className="grid items-end gap-6 xl:grid-cols-[minmax(0,1fr)_auto]">
+        <div className="space-y-3">
+          <Skeleton className="h-4 w-44" />
+          <Skeleton className="h-10 w-[min(560px,90%)]" />
+          <Skeleton className="h-10 w-[min(420px,70%)]" />
+        </div>
+        <div className="grid grid-cols-2 gap-x-10 gap-y-5 sm:grid-cols-4">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="space-y-2">
+              <Skeleton className="h-3.5 w-24" />
+              <Skeleton className="h-8 w-20" />
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
+        <Skeleton className="h-[520px] rounded-xl" />
+        <div className="space-y-3">
+          <Skeleton className="h-10 rounded-xl" />
+          {[0, 1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-[72px] rounded-xl" />
+          ))}
+        </div>
       </div>
     </div>
   );
 }
 
-export function ErrorBox({ message }: { message: string }) {
+/** Shown while the hosted demo server wakes up; the page keeps retrying by itself. */
+export function WakingUp() {
   const { t } = useLang();
-  return <div className="rounded-lg border border-crit/30 bg-crit/5 p-4 text-sm text-crit">{t.apiError(message)}</div>;
+  return (
+    <div className="grid min-h-[60vh] place-items-center" role="status" aria-live="polite">
+      <div className="panel max-w-md p-8 text-center">
+        <span className="relative mx-auto block size-3">
+          <span className="absolute inset-0 animate-ping rounded-full bg-accent/60" />
+          <span className="absolute inset-0 rounded-full bg-accent" />
+        </span>
+        <h2 className="title mt-5 text-ink">{t.wakingTitle}</h2>
+        <p className="mt-2 text-[0.9375rem] leading-relaxed text-muted">{t.wakingBody}</p>
+      </div>
+    </div>
+  );
 }
 
-/** A number that springs from what is on screen to its new value (interruptible: re-targets from the live value). */
-export function AnimatedNumber({ value, decimals = 0, suffix = "" }: { value: number; decimals?: number; suffix?: string }) {
+export function ErrorBox({ message, onRetry }: { message: string; onRetry?: () => void }) {
+  const { t } = useLang();
+  return (
+    <div className="flex flex-wrap items-center gap-3 rounded-lg border border-crit/30 bg-crit/5 p-4 text-sm text-crit">
+      <span className="min-w-0 flex-1">{t.apiError(message)}</span>
+      {onRetry && (
+        <button onClick={onRetry} className="h-9 rounded-lg bg-surface px-3 font-semibold text-ink ring-1 ring-border">
+          {t.retry}
+        </button>
+      )}
+    </div>
+  );
+}
+
+/**
+ * A number that springs from what is on screen to its new value (interruptible: re-targets from the live value).
+ * `from` sets the first value shown, so a figure can count up when it first appears.
+ */
+export function AnimatedNumber({ value, decimals = 0, suffix = "", from }: { value: number; decimals?: number; suffix?: string; from?: number }) {
   const reduce = useReducedMotion();
-  const [shown, setShown] = useState(value);
-  const live = useRef(value);
+  const [shown, setShown] = useState(from ?? value);
+  const live = useRef(from ?? value);
   useEffect(() => {
     if (reduce) {
       live.current = value;
@@ -35,7 +88,7 @@ export function AnimatedNumber({ value, decimals = 0, suffix = "" }: { value: nu
     const c = animate(live.current, value, {
       type: "spring",
       bounce: 0,
-      duration: 0.7,
+      duration: 0.9,
       onUpdate: (v) => {
         live.current = v;
         setShown(v);
@@ -60,7 +113,7 @@ export function Figure({ label, value, decimals = 0, suffix = "", unit, tone }: 
       <dt className="label">{label}</dt>
       <dd className="mt-2">
         <span className={`figure text-[2rem] transition-colors duration-500 ${color}`} dir="ltr">
-          <AnimatedNumber value={value} decimals={decimals} suffix={suffix} />
+          <AnimatedNumber value={value} decimals={decimals} suffix={suffix} from={0} />
         </span>
         {unit && <span className="ms-1.5 text-[0.8125rem] text-muted">{unit}</span>}
       </dd>

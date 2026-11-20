@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Overview, Site } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
@@ -27,6 +28,8 @@ const STYLE: Record<Site["status"], { r: number; fill: string }> = {
 
 export default function CoverageMap({ data, onPick }: { data: Overview; onPick: (s: Site) => void }) {
   const { t } = useLang();
+  const reduce = useReducedMotion();
+  const spring = { type: "spring" as const, bounce: 0, duration: 0.6 };
   const ordered = [...data.sites].sort((a, b) => STYLE[a.status].r - STYLE[b.status].r); // important dots on top
   const labelled = data.sites.filter((s) => s.status !== "covered");
 
@@ -58,23 +61,48 @@ export default function CoverageMap({ data, onPick }: { data: Overview; onPick: 
             <title>{a.name}</title>
           </g>
         ))}
-        {ordered.map((s) => (
-          <g key={s.id} onClick={() => s.status !== "covered" && onPick(s)} className={s.status !== "covered" ? "cursor-pointer" : ""}>
-            {s.status === "short" && <circle cx={x(s.lon)} cy={y(s.lat)} r={16} fill="none" stroke="var(--crit)" strokeWidth="2" opacity="0.45" />}
-            <circle cx={x(s.lon)} cy={y(s.lat)} r={STYLE[s.status].r} fill={STYLE[s.status].fill} stroke="var(--surface)" strokeWidth="1.5" opacity={s.status === "covered" ? 0.55 : 1} />
-            <title>{`${s.name}: ${s.assigned}/${s.night_required}`}</title>
-          </g>
-        ))}
-        {labelled.map((s, i) => {
-          const right = s.lon < 55.25;
-          const lx = x(s.lon) + (right ? 22 : -22);
+        {ordered.map((s, i) => {
+          const st = STYLE[s.status];
+          const open = s.status !== "covered";
           return (
-            <text key={s.id} x={lx} y={y(s.lat) + 5 + (i % 2) * 2} fontSize="17" fontWeight="700" textAnchor={right ? "start" : "end"}
-              fill={s.status === "short" ? "var(--crit)" : "var(--warn)"} stroke="var(--map-land)" strokeWidth="5" paintOrder="stroke">
-              {s.name}
-            </text>
+            <g key={s.id} onClick={() => open && onPick(s)} className={open ? "cursor-pointer" : ""}>
+              <AnimatePresence>
+                {s.status === "short" && (
+                  <motion.circle
+                    cx={x(s.lon)} cy={y(s.lat)} fill="none" stroke="var(--crit)" strokeWidth="2"
+                    initial={{ r: reduce ? 16 : 6, opacity: 0 }}
+                    animate={{ r: 16, opacity: 0.45 }}
+                    exit={{ r: reduce ? 16 : 28, opacity: 0 }}
+                    transition={{ ...spring, delay: reduce ? 0 : 0.3 + (i % 6) * 0.05 }}
+                  />
+                )}
+              </AnimatePresence>
+              {/* covered posts are static; open posts pop in, and spring down to "covered" when a guard is assigned */}
+              <motion.circle
+                cx={x(s.lon)} cy={y(s.lat)} stroke="var(--surface)" strokeWidth="1.5"
+                fill={st.fill}
+                style={{ transition: "fill 500ms ease" }}
+                initial={open && !reduce ? { r: 0, opacity: 1 } : false}
+                animate={{ r: st.r, opacity: open ? 1 : 0.55 }}
+                transition={{ ...spring, delay: open && !reduce ? 0.25 + (i % 6) * 0.05 : 0 }}
+              />
+              <title>{`${s.name}: ${s.assigned}/${s.night_required}`}</title>
+            </g>
           );
         })}
+        <AnimatePresence>
+          {labelled.map((s, i) => {
+            const right = s.lon < 55.25;
+            const lx = x(s.lon) + (right ? 22 : -22);
+            return (
+              <motion.text key={s.id} x={lx} y={y(s.lat) + 5 + (i % 2) * 2} fontSize="17" fontWeight="700" textAnchor={right ? "start" : "end"}
+                fill={s.status === "short" ? "var(--crit)" : "var(--warn)"} stroke="var(--map-land)" strokeWidth="5" paintOrder="stroke"
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.35, delay: reduce ? 0 : 0.45 }}>
+                {s.name}
+              </motion.text>
+            );
+          })}
+        </AnimatePresence>
       </svg>
       <div className="px-5 pb-3 pt-1 text-[0.75rem] text-muted">{t.schematic}</div>
     </figure>

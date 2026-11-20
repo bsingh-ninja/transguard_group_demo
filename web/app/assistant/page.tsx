@@ -3,7 +3,8 @@
 import Image from "next/image";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
-import { DemoWorker, getJSON, postJSON } from "@/lib/api";
+import { Skeleton } from "@/components/ui";
+import { DemoWorker, getJSON, loadWithWake, postJSON } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
 type Msg = { role: "user" | "assistant"; content: string; tools?: string[]; hrCase?: number | null; error?: boolean };
@@ -38,10 +39,12 @@ export default function Assistant() {
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    getJSON<DemoWorker[]>("/transguard/assistant/workers").then((w) => {
-      setWorkers(w);
-      setWorker(w[0] ?? null);
-    });
+    loadWithWake(() => getJSON<DemoWorker[]>("/transguard/assistant/workers"), () => {})
+      .then((w) => {
+        setWorkers(w);
+        setWorker(w[0] ?? null);
+      })
+      .catch(() => {});
   }, []);
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "end" });
@@ -86,9 +89,11 @@ export default function Assistant() {
         <div>
           <h2 className="label mb-3">{t.chooseGuard}</h2>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            {workers.length === 0 && [0, 1, 2, 3, 4, 5, 6, 7].map((i) => <Skeleton key={i} className="h-[68px] rounded-xl" />)}
             {workers.map((w) => (
               <button
                 key={w.id}
+                data-tour={`guard-${w.language}`}
                 onClick={() => choose(w)}
                 aria-pressed={worker?.id === w.id}
                 className={`press-soft rounded-xl p-3 text-start transition-colors ${
@@ -108,9 +113,10 @@ export default function Assistant() {
           <div>
             <h2 className="label mb-3">{t.tryAsking}</h2>
             <ul className="space-y-2">
-              {(SUGGESTIONS[worker.language] ?? SUGGESTIONS.English).map((s) => (
+              {(SUGGESTIONS[worker.language] ?? SUGGESTIONS.English).map((s, i) => (
                 <li key={s}>
                   <button
+                    data-tour={i === 0 ? "first-question" : undefined}
                     onClick={() => send(s)}
                     disabled={busy}
                     dir="auto"
