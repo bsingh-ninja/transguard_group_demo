@@ -80,6 +80,8 @@ The smoke test also runs against the local demo: `cd backend && .venv/bin/python
 
 Hosted on Render's free plan as the web service `transguard-demo` (Frankfurt). Render builds the `Dockerfile` and redeploys on every push to `main`. The container runs Postgres, the API and the web app on port 7860; nginx serves the web app and forwards `/api` to the API. The demo data is seeded fresh on every start, so a restart also resets the demo. `GEMINI_API_KEY` is set as an environment variable on the Render service, not in the code. The demo is open (no password); setting `DEMO_PASSWORD` on the service turns on a password prompt (user name `demo`).
 
+**Separate deployment (Ninjatech-DevOps):** in https://github.com/Ninjatech-DevOps/transguard-group-demo, `.github/workflows/docker.yml` builds this image on every push to `main` and publishes it as `ghcr.io/ninjatech-devops/transguard-group-demo:latest` (and a tag per commit). Run it on any Docker host with port 7860 exposed and `GEMINI_API_KEY` set (`DEMO_PASSWORD` optional). To redeploy automatically, add the hosting service's deploy hook URL as the repository secret `DEPLOY_WEBHOOK_URL`.
+
 Try the container locally:
 
 ```bash
