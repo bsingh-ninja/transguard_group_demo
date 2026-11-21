@@ -11,6 +11,10 @@ const DICT = {
     navWhatIf: "New contract",
     navAssistant: "Worker assistant",
     navTickets: "FM tickets",
+    tabTonight: "Tonight",
+    tabContract: "Contract",
+    tabAssistant: "Assistant",
+    tabTickets: "Tickets",
     comingSoon: "Coming next",
     theme: "Switch theme",
     shiftNote: "Night shift, 18 Nov 2026",
@@ -207,6 +211,10 @@ const DICT = {
     navWhatIf: "عقد جديد",
     navAssistant: "مساعد العاملين",
     navTickets: "بلاغات المرافق",
+    tabTonight: "الليلة",
+    tabContract: "العقد",
+    tabAssistant: "المساعد",
+    tabTickets: "البلاغات",
     comingSoon: "قريباً",
     theme: "تبديل المظهر",
     shiftNote: "النوبة الليلية، 18 نوفمبر 2026",
@@ -417,7 +425,8 @@ export function LangProvider({ children }: { children: React.ReactNode }) {
   }, []);
   useEffect(() => {
     document.documentElement.lang = lang;
-    document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+    // The layout stays in the same place in both languages; only the words change (Arabic text flows right to left inside its box).
+    document.documentElement.dir = "ltr";
   }, [lang]);
   const setLang = (l: Lang) => {
     setLangState(l);

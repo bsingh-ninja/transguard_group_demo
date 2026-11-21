@@ -266,8 +266,8 @@ def _message(worker, site_row) -> dict:
                 "Keep names, place names, times and the word YES unchanged. Output only the translation.",
             )
             by = "gemini"
-        except RuntimeError:
-            local = text_en
+        except Exception:  # no network, quota, timeout: the guard still gets the shift, in English
+            local, by = text_en, "template"
     return {"language": worker["language"], "text_local": local, "text_en": text_en, "translated_by": by}
 
 

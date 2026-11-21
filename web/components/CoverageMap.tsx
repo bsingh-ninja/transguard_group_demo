@@ -72,7 +72,14 @@ export default function NightMap({ data, region, onPick }: { data: Overview; reg
 
   return (
     <figure className="relative m-0 min-w-0 flex-1 basis-[260px] overflow-hidden rounded-2xl shadow-[0_0_0_1px_rgb(255_255_255/0.07)]">
-      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t.mapOf(city)} className="block h-auto w-full" style={{ direction: "ltr" }}>
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        role="img"
+        aria-label={t.mapOf(city)}
+        className="block h-auto w-full"
+        direction="ltr"
+        style={{ direction: "ltr" }}
+      >
         <rect width={W} height={H} fill="var(--night-sea)" />
         {Array.from({ length: Math.ceil(W / 40) }, (_, i) => (
           <line key={`v${i}`} x1={i * 40} y1="0" x2={i * 40} y2={H} stroke="#fff" strokeOpacity="0.035" />
@@ -166,6 +173,7 @@ export default function NightMap({ data, region, onPick }: { data: Overview; reg
                   stroke="var(--night-land)"
                   strokeWidth="4"
                   paintOrder="stroke"
+                  direction="ltr"
                 >
                   {short(s.name)}
                 </text>
@@ -179,6 +187,8 @@ export default function NightMap({ data, region, onPick }: { data: Overview; reg
                   stroke="var(--night-land)"
                   strokeWidth="4"
                   paintOrder="stroke"
+                  direction="ltr"
+                  unicodeBidi="plaintext"
                 >
                   {red ? t.postsOpen(s.vacancies) : t.legendRisk}
                 </text>

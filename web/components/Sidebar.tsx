@@ -69,10 +69,10 @@ export default function Sidebar() {
   const reduce = useReducedMotion();
   const counts = useCounts(path);
   const nav = [
-    { href: "/", key: "tonight", label: t.navTonight, ready: true, badge: counts?.tonight, crit: true },
-    { href: "/what-if", key: "whatif", label: t.navWhatIf, ready: true },
-    { href: "/assistant", key: "assistant", label: t.navAssistant, ready: true },
-    { href: "/tickets", key: "tickets", label: t.navTickets, ready: true, badge: counts?.tickets },
+    { href: "/", key: "tonight", label: t.navTonight, short: t.tabTonight, ready: true, badge: counts?.tonight, crit: true },
+    { href: "/what-if", key: "whatif", label: t.navWhatIf, short: t.tabContract, ready: true },
+    { href: "/assistant", key: "assistant", label: t.navAssistant, short: t.tabAssistant, ready: true },
+    { href: "/tickets", key: "tickets", label: t.navTickets, short: t.tabTickets, ready: true, badge: counts?.tickets },
   ];
   const active = (href: string) => (href === "/" ? path === "/" : path.startsWith(href));
 
@@ -119,16 +119,19 @@ export default function Sidebar() {
       <div className="flex items-center gap-3 px-4 pb-3 pt-4 lg:px-5 lg:pb-7 lg:pt-6">
         <Image src="/transguard-logo.png" alt="" width={42} height={42} priority />
         <div className="min-w-0 leading-tight">
-          <div className="text-[15px] font-bold">Transguard Group</div>
-          <div className="text-[12.5px] text-sidebar-muted">{t.product}</div>
+          <div className="whitespace-nowrap text-[15px] font-bold">Transguard Group</div>
+          <div className="hidden text-[12.5px] text-sidebar-muted sm:block">{t.product}</div>
         </div>
         <div className="ms-auto lg:hidden">{controls}</div>
       </div>
 
-      <nav className="flex gap-1 overflow-x-auto px-3 pb-3 lg:flex-col lg:overflow-visible lg:pb-0">
+      <nav
+        aria-label="Screens"
+        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 gap-1 border-t border-hairline bg-sidebar/95 px-2 pb-[max(10px,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur-xl lg:static lg:flex lg:flex-col lg:gap-0.5 lg:border-t-0 lg:bg-transparent lg:px-3 lg:pb-0 lg:pt-0 lg:backdrop-blur-none"
+      >
         {nav.map((n) => {
           const on = active(n.href);
-          const cls = `press-soft relative flex shrink-0 items-center gap-3 rounded-[11px] px-3 py-2.5 text-[14.5px] transition-colors ${
+          const cls = `press-soft relative flex min-w-0 flex-col items-center gap-1 rounded-[11px] px-1 py-1.5 text-[11px] transition-colors lg:flex-row lg:gap-3 lg:px-3 lg:py-2.5 lg:text-[14.5px] ${
             on
               ? "font-semibold text-sidebar-fg"
               : n.ready
@@ -158,10 +161,11 @@ export default function Sidebar() {
               >
                 {ICONS[n.key]}
               </svg>
-              <span className="relative">{n.label}</span>
+              <span className="relative hidden lg:inline">{n.label}</span>
+              <span className="relative max-w-full truncate lg:hidden">{n.short}</span>
               {!!n.badge && (
                 <span
-                  className={`relative ms-auto grid h-5 min-w-[22px] place-items-center rounded-full px-1.5 text-[11.5px] font-bold ${
+                  className={`absolute start-[calc(50%+4px)] top-0.5 grid h-[18px] min-w-[20px] place-items-center rounded-full px-1.5 text-[11px] font-bold lg:relative lg:start-auto lg:top-auto lg:ms-auto lg:h-5 lg:min-w-[22px] lg:text-[11.5px] ${
                     n.crit ? "bg-primary text-primary-fg" : "bg-surface-2 text-ink"
                   }`}
                 >

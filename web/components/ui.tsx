@@ -9,33 +9,29 @@ export function Skeleton({ className = "" }: { className?: string }) {
   return <div className={`skeleton ${className}`} aria-hidden="true" />;
 }
 
-/** Tonight-shaped placeholder: headline, four figures, map and action list */
+/** Tonight-shaped placeholder: the dark situation card with its ring and maps, and the action cards beside it */
 export function Loading() {
   return (
-    <div className="space-y-8" aria-busy="true">
-      <div className="grid items-end gap-6 xl:grid-cols-[minmax(0,1fr)_auto]">
-        <div className="space-y-3">
-          <Skeleton className="h-4 w-44" />
-          <Skeleton className="h-10 w-[min(560px,90%)]" />
-          <Skeleton className="h-10 w-[min(420px,70%)]" />
+    <div className="flex flex-wrap items-start gap-6" aria-busy="true">
+      <div className="night min-w-0 flex-[999_1_600px] space-y-6 p-5 sm:p-7">
+        <div className="flex flex-wrap items-center justify-between gap-6">
+          <div className="flex-[1_1_300px] space-y-3 [&_.skeleton]:bg-none [&_.skeleton]:bg-white/8">
+            <Skeleton className="h-6 w-56 rounded-full" />
+            <Skeleton className="h-11 w-[min(420px,90%)]" />
+            <Skeleton className="h-11 w-[min(300px,70%)]" />
+            <Skeleton className="h-11 w-40 rounded-[13px]" />
+          </div>
+          <div className="size-[176px] rounded-full border-[12px] border-white/8" />
         </div>
-        <div className="grid grid-cols-2 gap-x-10 gap-y-5 sm:grid-cols-4">
-          {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="space-y-2">
-              <Skeleton className="h-3.5 w-24" />
-              <Skeleton className="h-8 w-20" />
-            </div>
-          ))}
+        <div className="flex flex-wrap gap-3">
+          <div className="h-[260px] flex-[1_1_260px] rounded-2xl bg-white/5" />
+          <div className="h-[260px] flex-[1_1_260px] rounded-2xl bg-white/5" />
         </div>
       </div>
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
-        <Skeleton className="h-[520px] rounded-xl" />
-        <div className="space-y-3">
-          <Skeleton className="h-10 rounded-xl" />
-          {[0, 1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-[72px] rounded-xl" />
-          ))}
-        </div>
+      <div className="flex min-w-0 flex-[1_1_340px] flex-col gap-3">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-[250px] rounded-[20px]" />
+        <Skeleton className="h-[250px] rounded-[20px]" />
       </div>
     </div>
   );
@@ -373,9 +369,9 @@ export function Sheet({
   header?: (close: () => void) => React.ReactNode;
   children: React.ReactNode;
 }) {
-  const { t, lang } = useLang();
+  const { t } = useLang();
   const reduce = useReducedMotion();
-  const sign = lang === "ar" ? -1 : 1;
+  const sign = 1; // always from the right edge, in both languages
   const [width, setWidth] = useState(500);
   const x = useMotionValue(sign * 560);
   const opacity = useMotionValue(reduce ? 0 : 1);

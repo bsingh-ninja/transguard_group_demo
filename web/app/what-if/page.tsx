@@ -202,7 +202,7 @@ export default function WhatIf() {
                   <div className="mt-[7px] h-2.5 overflow-hidden rounded-full bg-surface-2">
                     <motion.div
                       className="h-full rounded-full bg-gold"
-                      style={{ transformOrigin: lang === "ar" ? "right" : "left" }}
+                      style={{ transformOrigin: "left" }}
                       initial={reduce ? false : { scaleX: 0 }}
                       animate={{ scaleX: 1, width: `${(a.guards / max) * 100}%` }}
                       transition={

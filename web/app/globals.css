@@ -135,6 +135,14 @@ body {
 html[lang="ar"] body {
   font-family: var(--font-arabic), var(--font-open-sans), system-ui, sans-serif;
 }
+/* Arabic keeps the English layout: each line of text reads right to left (so punctuation and numbers sit
+   where an Arabic reader expects), but it stays aligned where the English text was. */
+html[lang="ar"] :is(p, h1, h2, h3, li, dt, dd, label, figcaption, button, a, span) {
+  unicode-bidi: plaintext;
+}
+html[lang="ar"] :is(p, h1, h2, h3, li, dt, dd, label, figcaption):not(.text-center) {
+  text-align: left;
+}
 
 h1,
 h2,

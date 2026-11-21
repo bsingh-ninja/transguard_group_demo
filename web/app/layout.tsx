@@ -28,7 +28,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <LangProvider>
           <div className="min-h-screen lg:grid lg:grid-cols-[248px_minmax(0,1fr)]">
             <Sidebar />
-            <main className="min-w-0 px-4 pb-16 pt-6 sm:px-8 lg:px-10 lg:pt-9">
+            <main className="min-w-0 px-4 pb-28 pt-5 sm:px-8 lg:px-10 lg:pb-16 lg:pt-8">
               <div className="mx-auto w-full max-w-[1240px]">{children}</div>
             </main>
           </div>
