@@ -192,8 +192,10 @@ create table transguard.worker (
   status text, phone_last4 text);
 create table transguard.shift (
   id serial primary key, site_id text references transguard.site, worker_id text references transguard.worker,
-  shift_date date, period text, starts timestamp, ends timestamp, noshow_risk float, source text);
+  shift_date date, period text, starts timestamp, ends timestamp, noshow_risk float, source text,
+  overtime_hours int default 0, replaced_risk float);
 create table transguard.model (name text primary key, params jsonb);
+create table transguard.setting (key text primary key, value jsonb);
 create table transguard.message (
   id serial primary key, worker_id text, language text, text_en text, text_local text, created timestamp default now());
 """
@@ -365,6 +367,9 @@ def seed():
             cur.execute(
                 "insert into transguard.model values ('noshow', %s), ('rng_after_training', %s)", (json.dumps(model), json.dumps(rng_state))
             )
+            from app.transguard.savings import DEFAULTS  # imported here: savings reads TODAY from this module
+
+            cur.execute("insert into transguard.setting values ('savings', %s)", (json.dumps(DEFAULTS.model_dump()),))
         from app.transguard.assist import seed_fm  # FM technicians and sample tickets (phase 5)
 
         seed_fm(conn, random.Random(23))

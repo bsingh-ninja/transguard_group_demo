@@ -11,6 +11,8 @@ from pydantic import BaseModel
 
 from app.db import connect, fetch_all, fetch_one
 from app.llm import client, generate_text
+from app.transguard.risk import explain, risk
+from app.transguard.savings import estimate
 from app.transguard.seed import ACCOMMODATION, AREAS, NIGHT_END, NIGHT_START, TODAY, km
 
 router = APIRouter(prefix="/transguard", tags=["transguard"])
@@ -85,7 +87,8 @@ def site(site_id: str):
     guards = fetch_all(
         """
         select sh.id as shift_id, sh.noshow_risk, sh.source, w.id, w.name, w.nationality, w.language, w.gender, w.role,
-               w.skills, w.consecutive_nights, w.weekly_hours, w.absence_rate, a.name as accommodation, a.lat as acc_lat, a.lon as acc_lon
+               w.skills, w.consecutive_nights, w.weekly_hours, w.absence_rate, w.accommodation_id,
+               a.name as accommodation, a.lat as acc_lat, a.lon as acc_lon
         from transguard.shift sh join transguard.worker w on w.id = sh.worker_id
         join transguard.accommodation a on a.id = w.accommodation_id
         where sh.site_id = %s and sh.shift_date = %s order by sh.noshow_risk desc""",
@@ -93,21 +96,8 @@ def site(site_id: str):
     )
     for g in guards:
         g["commute_km"] = round(km(s["lat"], s["lon"], g.pop("acc_lat"), g.pop("acc_lon")), 1)
-        g["risk_reasons"] = _risk_reasons(g)
+        g["risk_reasons"] = explain(g, s)
     return {"site": s, "guards": guards, "vacancies": max(0, s["night_required"] - len(guards))}
-
-
-def _risk_reasons(g) -> list[str]:
-    reasons = []
-    if g["absence_rate"] > 0.08:
-        reasons.append(f"Missed {g['absence_rate']:.0%} of shifts in the last 90 days")
-    if g.get("commute_km", 0) > 18:
-        reasons.append(f"Long commute ({g['commute_km']:.0f} km)")
-    if g["consecutive_nights"] >= 5:
-        reasons.append(f"{g['consecutive_nights']} nights in a row")
-    if g["weekly_hours"] > 54:
-        reasons.append(f"{g['weekly_hours']} hours this week")
-    return reasons
 
 
 @router.get("/gaps")
@@ -120,13 +110,16 @@ def gaps():
             out.append({"key": f"{s['id']}:v{i}", "kind": "vacancy", "site_id": s["id"], "site": s["name"], "area": s["area"]})
     risky = fetch_all(
         """
-        select sh.id as shift_id, sh.noshow_risk, s.id as site_id, s.name as site, s.area, w.name as worker, w.id as worker_id
+        select sh.id as shift_id, sh.noshow_risk, s.id as site_id, s.name as site, s.area, w.name as worker, w.id as worker_id,
+               s.lat, s.lon, w.accommodation_id, w.absence_rate, w.consecutive_nights, w.weekly_hours
         from transguard.shift sh join transguard.site s on s.id = sh.site_id join transguard.worker w on w.id = sh.worker_id
         where sh.shift_date = %s and sh.noshow_risk > %s order by sh.noshow_risk desc""",
         (TODAY, RISK_THRESHOLD),
     )
     for r in risky:
-        out.append({"key": f"{r['site_id']}:s{r['shift_id']}", "kind": "at_risk", **r})
+        reasons = explain(r, r)  # the row carries both the guard's figures and the site's position
+        keep = {k: r[k] for k in ("shift_id", "noshow_risk", "site_id", "site", "area", "worker", "worker_id")}
+        out.append({"key": f"{r['site_id']}:s{r['shift_id']}", "kind": "at_risk", **keep, "reasons": reasons})
     return out
 
 
@@ -233,6 +226,7 @@ def backfill_plan():
         "total_commute_km": round(sum(p["candidate"]["commute_km"] for p in plan), 1),
         "total_overtime_aed": sum(p["candidate"]["overtime_cost_aed"] for p in plan),
         "solve_ms": round(solver.WallTime() * 1000),
+        "estimated_saving_aed": estimate(plan),
     }
 
 
@@ -272,13 +266,22 @@ def _message(worker, site_row) -> dict:
 
 
 def _write_assignment(a: Assignment, w) -> None:
+    s = fetch_one("select * from transguard.site where id = %s", (a.site_id,))
+    overtime_h = max(0, w["weekly_hours"] + SHIFT_HOURS - 48) - max(0, w["weekly_hours"] - 48)
+    # the new guard is scored by the same model as everyone else, as they will be after tonight's shift
+    new_risk = risk({**w, "weekly_hours": w["weekly_hours"] + SHIFT_HOURS, "consecutive_nights": max(1, w["consecutive_nights"])}, s)
     with connect() as conn:
+        replaced_risk = None
         if a.replaces_shift_id:
-            conn.execute("delete from transguard.shift where id = %s and site_id = %s", (a.replaces_shift_id, a.site_id))
+            row = conn.execute(
+                "delete from transguard.shift where id = %s and site_id = %s returning noshow_risk", (a.replaces_shift_id, a.site_id)
+            ).fetchone()
+            replaced_risk = row["noshow_risk"] if row else None
         conn.execute(
-            """insert into transguard.shift (site_id, worker_id, shift_date, period, starts, ends, noshow_risk, source)
-                        values (%s,%s,%s,'night',%s,%s,%s,'backfill')""",
-            (a.site_id, a.worker_id, TODAY, NIGHT_START, NIGHT_END, round(w["absence_rate"], 4)),
+            """insert into transguard.shift
+                 (site_id, worker_id, shift_date, period, starts, ends, noshow_risk, source, overtime_hours, replaced_risk)
+               values (%s,%s,%s,'night',%s,%s,%s,'backfill',%s,%s)""",
+            (a.site_id, a.worker_id, TODAY, NIGHT_START, NIGHT_END, round(new_risk, 4), overtime_h, replaced_risk),
         )
         conn.execute("update transguard.worker set weekly_hours = weekly_hours + %s where id = %s", (SHIFT_HOURS, a.worker_id))
 

@@ -35,8 +35,15 @@ check("site list for the new fault report form, with site types", len(sites) == 
 best = call("/transguard/backfill/S003")["candidates"][0]
 m = call(f"/transguard/backfill/S003/message/{best['id']}")  # translated by Gemini when a key is set, English otherwise
 check("message preview before approving", m["language"] == best["language"] and best["name"].split()[0] in m["text_en"])
+risky = [g for g in call("/transguard/gaps") if g["kind"] == "at_risk"]
+explained = all(g["reasons"] for g in risky) and risky[0]["reasons"][0]["key"] == "absence"
+check("each likely no-show explains why, biggest reason first", explained)
+s = call("/transguard/savings")
+money = (s["at_stake"]["posts"], s["at_stake"]["aed"], s["saved"]["total_aed"])
+check("money: 7 posts and AED 5,520 at stake, nothing saved yet", money == (7, 5520, 0))
 plan = call("/transguard/backfill/plan", {}, "POST")
 check("optimiser fills every gap", len(plan["assignments"]) >= 6 and plan["total_overtime_aed"] == 0)
+check("the plan says what it saves", plan["estimated_saving_aed"] > 0)
 w = call("/transguard/what-if", {"area": "Dubai Marina", "guards": 40, "female_guards": 6, "first_aid": 10, "start": "2026-12-01"})
 check(
     "new contract: 28 covered, 12 to hire, 2 short on female guards", (w["covered"], w["hiring_gap"], w["female_shortfall"]) == (28, 12, 2)
