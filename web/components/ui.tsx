@@ -201,7 +201,8 @@ const SITE_ICON: Record<string, React.ReactNode> = {
   ),
   government: <path d="M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18" />,
   hotel: <path d="M3 20V6M3 13h18v7M21 20v-5M7 10a2 2 0 1 0 0-.01M11 10h7a3 3 0 0 1 3 3" />,
-  office: <path d="M5 21V4h10v17M15 9h4v12M8 8h4M8 12h4M8 16h4M3 21h18" />,
+  tower: <path d="M5 21V4h10v17M15 9h4v12M8 8h4M8 12h4M8 16h4M3 21h18" />,
+  bank: <path d="M3 9l9-5 9 5M4 9h16M6 9v8M10 9v8M14 9v8M18 9v8M3 20h18" />,
   residential: <path d="M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6" />,
 };
 const OTHER_ICON = <path d="M12 3l8 4v5c0 4.5-3.4 8.4-8 9-4.6-.6-8-4.5-8-9V7z" />;
@@ -241,11 +242,11 @@ export function StatTile({
 }) {
   const color = tone === "ok" ? (dark ? "text-night-ok" : "text-ok") : tone === "crit" ? (dark ? "text-night-crit" : "text-crit") : "";
   return (
-    <div className={`min-w-0 rounded-xl px-3 py-2.5 ${dark ? "bg-night-tile" : "bg-surface-2/70"}`}>
-      <div className={`num text-[16px] font-bold leading-tight ${color}`} dir="ltr">
+    <div className={`min-w-0 rounded-xl px-2.5 py-2.5 ${dark ? "bg-night-tile" : "bg-surface-2/70"}`}>
+      <div className={`num whitespace-nowrap text-[16px] font-bold leading-tight ${color}`} dir="ltr">
         {value}
       </div>
-      <div className={`mt-0.5 text-[11.5px] ${dark ? "text-night-muted" : "text-muted"}`}>{label}</div>
+      <div className={`mt-0.5 truncate text-[11.5px] ${dark ? "text-night-muted" : "text-muted"}`}>{label}</div>
     </div>
   );
 }

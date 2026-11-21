@@ -185,7 +185,7 @@ export const AREAS = [
 ];
 
 export type DemoWorker = { id: string; name: string; language: string; nationality: string };
-export type SiteOption = { id: string; name: string; area: string };
+export type SiteOption = { id: string; name: string; area: string; type: string };
 
 export type Triage = {
   trade: string;
