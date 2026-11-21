@@ -4,6 +4,8 @@ import Image from "next/image";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { Skeleton } from "@/components/ui";
+import { EASE_OUT, rise } from "@/lib/motion";
+import { isRtl, NATIVE } from "@/lib/languages";
 import { DemoWorker, getJSON, loadWithWake, postJSON } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
@@ -23,15 +25,6 @@ const SUGGESTIONS: Record<string, string[]> = {
   Arabic: ["متى موعد الراتب القادم؟", "أين مناوبتي الليلة؟", "كم يوم إجازة متبقي لي؟"],
   English: ["When is my next pay day?", "Where is my shift tonight?", "My supervisor shouted at me, I want to complain."],
 };
-const TOOL_LABEL: Record<string, string> = {
-  get_my_shift: "Shift roster",
-  get_my_payslip: "Payslip",
-  get_my_leave: "Leave balance",
-  get_my_documents: "Visa and documents",
-  get_my_transport: "Bus schedule",
-  escalate_to_hr: "HR case opened",
-};
-
 export default function Assistant() {
   const { t } = useLang();
   const reduce = useReducedMotion();
@@ -80,46 +73,65 @@ export default function Assistant() {
     }
   };
 
-  const lastTools = [...msgs].reverse().find((m) => m.tools)?.tools ?? [];
-  const lastCase = [...msgs].reverse().find((m) => m.hrCase)?.hrCase;
-  const bubbleIn = reduce ? { initial: { opacity: 0 }, animate: { opacity: 1 } } : {};
+  // a bubble grows from its own corner; under reduced motion it only fades
+  const bubble = (mine: boolean) =>
+    reduce
+      ? { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { duration: 0.2 } }
+      : {
+          initial: { opacity: 0, y: 10, scale: 0.96 },
+          animate: { opacity: 1, y: 0, scale: 1 },
+          transition: { duration: 0.42, ease: EASE_OUT },
+          style: { transformOrigin: mine ? "100% 100%" : "0% 100%" },
+        };
+  const scriptFont = (language: string) => (isRtl(language) ? "font-[family-name:var(--font-arabic)]" : "");
 
   return (
-    <div className="grid gap-10 xl:grid-cols-[minmax(0,1fr)_420px]">
-      <section className="min-w-0 space-y-8">
+    <div className="flex flex-wrap items-start gap-8">
+      <section className="flex min-w-0 flex-[999_1_460px] flex-col gap-[26px]">
         <div>
-          <p className="label">{t.navAssistant}</p>
-          <h1 className="display mt-2 max-w-[22ch] text-ink">{t.assistantTitle}</h1>
-          <p className="mt-3 max-w-[60ch] text-[1.0625rem] leading-relaxed text-muted">{t.assistantIntro}</p>
+          <p className="text-[13px] font-bold text-gold-ink">{t.assistantKicker}</p>
+          <h1 className="mt-1 max-w-[20ch] text-[clamp(1.75rem,1.4rem+1vw,2.125rem)] font-bold leading-[1.1] tracking-[-0.028em] text-ink rtl:tracking-normal">
+            {t.assistantHeadline}
+          </h1>
         </div>
 
         <div>
-          <h2 className="label mb-3">{t.chooseGuard}</h2>
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-            {workers.length === 0 && [0, 1, 2, 3, 4, 5, 6, 7].map((i) => <Skeleton key={i} className="h-[68px] rounded-xl" />)}
-            {workers.map((w) => (
-              <button
-                key={w.id}
-                data-tour={`guard-${w.language}`}
-                onClick={() => choose(w)}
-                aria-pressed={worker?.id === w.id}
-                className={`press-soft rounded-xl p-3 text-start transition-colors ${
-                  worker?.id === w.id ? "bg-accent-soft ring-2 ring-accent" : "bg-surface ring-1 ring-border hover:ring-accent/50"
-                }`}
-              >
-                <div className="truncate font-semibold text-ink">{w.name}</div>
-                <div className="text-[0.8125rem] text-muted">
-                  {w.language}, {w.nationality}
-                </div>
-              </button>
-            ))}
+          <h2 className="mb-2.5 text-[13px] font-bold text-muted">{t.chooseGuard}</h2>
+          <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
+            {workers.length === 0 && [0, 1, 2, 3, 4, 5, 6, 7].map((i) => <Skeleton key={i} className="h-[98px] rounded-2xl" />)}
+            {workers.map((w) => {
+              const on = worker?.id === w.id;
+              return (
+                <button
+                  key={w.id}
+                  data-tour={`guard-${w.language}`}
+                  onClick={() => choose(w)}
+                  aria-pressed={on}
+                  className={`press-soft flex min-w-0 flex-col gap-0.5 rounded-2xl p-3.5 text-start transition-[background-color,box-shadow,color] duration-300 ${
+                    on
+                      ? "bg-night text-night-ink shadow-[0_16px_30px_-18px_rgb(20_18_17/0.7)]"
+                      : "bg-surface text-ink shadow-[var(--shadow-card)] hover:bg-surface-2/50"
+                  }`}
+                >
+                  <span
+                    className={`text-[23px] font-semibold leading-[1.35] transition-colors duration-300 ${on ? "text-[#e8cf9c]" : ""} ${scriptFont(w.language)}`}
+                  >
+                    {NATIVE[w.language] ?? w.language}
+                  </span>
+                  <span className="truncate text-[13.5px] font-bold">{w.name}</span>
+                  <span className={`text-[12px] ${on ? "text-night-muted" : "text-muted"}`}>
+                    {w.language} · {w.nationality}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {worker && (
           <div>
-            <h2 className="label mb-3">{t.tryAsking}</h2>
-            <ul className="space-y-2">
+            <h2 className="mb-2.5 text-[13px] font-bold text-muted">{t.tryAskingIn(worker.language)}</h2>
+            <ul className="flex flex-col gap-2">
               {(SUGGESTIONS[worker.language] ?? SUGGESTIONS.English).map((s, i) => (
                 <li key={s}>
                   <button
@@ -127,9 +139,22 @@ export default function Assistant() {
                     onClick={() => send(s)}
                     disabled={busy}
                     dir="auto"
-                    className="press-soft w-full rounded-xl bg-surface px-4 py-3 text-start text-[1rem] text-ink ring-1 ring-border hover:ring-accent/60 disabled:opacity-50"
+                    className={`press-soft flex min-h-14 w-full items-center justify-between gap-3 rounded-2xl bg-surface px-[18px] py-2.5 text-start text-[16.5px] text-ink shadow-[var(--shadow-card)] hover:bg-surface-2/50 disabled:opacity-50 ${scriptFont(worker.language)}`}
                   >
-                    {s}
+                    <span>{s}</span>
+                    <span className="grid size-[30px] shrink-0 place-items-center rounded-full bg-surface-2" aria-hidden="true">
+                      <svg
+                        viewBox="0 0 24 24"
+                        className="size-3.5 rtl:-scale-x-100"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M5 12h14M13 6l6 6-6 6" />
+                      </svg>
+                    </span>
                   </button>
                 </li>
               ))}
@@ -137,67 +162,77 @@ export default function Assistant() {
           </div>
         )}
 
-        {(lastTools.length > 0 || lastCase) && (
-          <div className="rise">
-            <h2 className="label mb-2">{t.assistantChecked}</h2>
-            <div className="flex flex-wrap gap-2">
-              {lastTools.map((x, i) => (
-                <span
-                  key={x + i}
-                  className={`rounded-full px-3 py-1 text-[0.8125rem] font-semibold ${x === "escalate_to_hr" ? "bg-primary/10 text-primary" : "bg-surface-2 text-ink"}`}
-                >
-                  {TOOL_LABEL[x] ?? x}
-                  {x === "escalate_to_hr" && lastCase ? ` HR-${String(lastCase).padStart(5, "0")}` : ""}
-                </span>
-              ))}
+        <div className="grid gap-2.5 sm:grid-cols-3">
+          {[
+            [t.infoLookup, t.infoLookupBody],
+            [t.infoKind, t.infoKindBody],
+            [t.infoHr, t.infoHrBody],
+          ].map(([h, b]) => (
+            <div key={h} className="rounded-2xl bg-surface-2 p-3.5">
+              <div className="text-[14px] font-bold text-ink">{h}</div>
+              <div className="mt-0.5 text-[12.5px] leading-snug text-muted">{b}</div>
             </div>
-            <p className="mt-3 text-[0.8125rem] text-muted">{t.assistantSimulated}</p>
-          </div>
-        )}
+          ))}
+        </div>
       </section>
 
-      {/* The phone: what the guard sees */}
-      <div className="mx-auto w-full max-w-[400px] xl:sticky xl:top-8 xl:self-start">
-        <div className="rounded-[46px] bg-[#1b1918] p-3 shadow-[0_30px_80px_-30px_rgb(31_28_27/0.6)]">
-          <div className="flex h-[min(760px,78vh)] flex-col overflow-hidden rounded-[36px] bg-[#efe9e1]">
-            <div className="flex items-center gap-3 bg-[#1f1c1b] px-4 pb-3 pt-6 text-white">
-              <Image src="/transguard-logo.png" alt="" width={34} height={34} className="rounded-full bg-white/90 p-0.5" />
+      {/* The phone, on a dark stage: what the guard sees. The phone itself is a device, so it keeps its own light colours. */}
+      <motion.div
+        {...rise(reduce, 0, 18, 0.62)}
+        className="night mx-auto w-full max-w-[430px] flex-[1_1_380px] rounded-[28px] px-[22px] pb-[18px] pt-[26px] xl:sticky xl:top-8"
+      >
+        <div className="rounded-[46px] bg-[#0b0a09] p-2.5 shadow-[0_0_0_1px_rgb(255_255_255/0.1)]">
+          <div className="flex h-[min(690px,74vh)] flex-col overflow-hidden rounded-[37px] bg-[#f4f3f0] text-[#1d1a19]">
+            <div className="flex items-center gap-[11px] border-b border-[#ebe8e3] bg-white px-[18px] pb-3.5 pt-6">
+              <Image src="/transguard-logo.png" alt="" width={34} height={34} />
               <div className="min-w-0 leading-tight">
                 <div className="text-[15px] font-bold">{t.assistantName}</div>
-                <div className="text-[12px] text-white/60">{busy ? t.typing : t.online}</div>
+                <div className="text-[12px] font-semibold text-[#2e7d32]">{busy ? t.typing : t.fromOwnRecords}</div>
               </div>
             </div>
-            <div className="min-h-0 flex-1 space-y-2 overflow-y-auto px-3 py-4">
-              {msgs.length === 0 && <p className="mx-auto mt-10 max-w-[260px] text-center text-[13px] text-[#6b6563]">{t.phoneEmpty}</p>}
+            <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-3.5 py-[18px]">
+              {msgs.length === 0 && (
+                <p className="mx-auto mt-14 max-w-[240px] text-center text-[13px] leading-normal text-[#6b6563]">{t.phoneEmpty}</p>
+              )}
               <AnimatePresence initial={false}>
-                {msgs.map((m, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, scale: 0.94, y: 8 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ type: "spring", bounce: 0, duration: 0.35 }}
-                    style={{ transformOrigin: m.role === "user" ? "100% 100%" : "0% 100%" }}
-                    {...bubbleIn}
-                    className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
-                  >
-                    <div
-                      dir="auto"
-                      className={`max-w-[82%] whitespace-pre-wrap rounded-2xl px-3.5 py-2 text-[15px] leading-relaxed shadow-sm ${
-                        m.role === "user"
-                          ? "rounded-ee-md bg-[#dcf8c6] text-[#1f2b1f]"
-                          : m.error
-                            ? "rounded-es-md bg-[#fde8e8] text-[#8a1c1c]"
-                            : "rounded-es-md bg-white text-[#282423]"
-                      }`}
-                    >
-                      {m.content}
-                    </div>
-                  </motion.div>
-                ))}
+                {msgs.map((m, i) => {
+                  const mine = m.role === "user";
+                  const sources = (m.tools ?? []).filter((x) => t.source[x]);
+                  return (
+                    <motion.div key={i} {...bubble(mine)} className={`flex flex-col gap-1.5 ${mine ? "items-end" : "items-start"}`}>
+                      <div
+                        dir="auto"
+                        className={`max-w-[84%] whitespace-pre-wrap px-3.5 py-2.5 text-[15.5px] leading-relaxed ${scriptFont(worker?.language ?? "")} ${
+                          mine
+                            ? "rounded-[20px] rounded-ee-md bg-[#151311] text-white"
+                            : m.error
+                              ? "rounded-[20px] rounded-es-md bg-[#fde8e8] text-[#8a1c1c]"
+                              : "rounded-[20px] rounded-es-md bg-white shadow-[0_1px_2px_rgb(29_26_25/0.08)]"
+                        }`}
+                      >
+                        {m.content}
+                      </div>
+                      {/* where the answer came from lands just after the answer */}
+                      {(sources.length > 0 || m.hrCase) && (
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ duration: 0.3, delay: reduce ? 0 : 0.26 }}
+                          className="ms-1 flex flex-wrap gap-1.5"
+                        >
+                          {sources.map((x) => (
+                            <Badge key={x}>{t.source[x]}</Badge>
+                          ))}
+                          {m.hrCase && <Badge hr>{t.hrOpened(`HR-${String(m.hrCase).padStart(5, "0")}`)}</Badge>}
+                        </motion.div>
+                      )}
+                    </motion.div>
+                  );
+                })}
               </AnimatePresence>
               {busy && (
-                <div className="flex justify-start" aria-label={t.typing}>
-                  <div className="flex gap-1 rounded-2xl rounded-es-md bg-white px-4 py-3 shadow-sm">
+                <motion.div {...bubble(false)} className="flex justify-start" aria-label={t.typing}>
+                  <div className="flex gap-1 rounded-[20px] rounded-es-md bg-white px-4 py-3 shadow-[0_1px_2px_rgb(29_26_25/0.08)]">
                     {[0, 1, 2].map((d) => (
                       <span
                         key={d}
@@ -206,7 +241,7 @@ export default function Assistant() {
                       />
                     ))}
                   </div>
-                </div>
+                </motion.div>
               )}
               <div ref={endRef} />
             </div>
@@ -215,7 +250,7 @@ export default function Assistant() {
                 e.preventDefault();
                 send(input);
               }}
-              className="flex items-center gap-2 bg-[#f6f2ec] px-3 py-3"
+              className="flex items-center gap-2 border-t border-[#ebe8e3] bg-white px-3 pb-[18px] pt-3"
             >
               <label htmlFor="phone-input" className="sr-only">
                 {t.typeMessage}
@@ -227,23 +262,47 @@ export default function Assistant() {
                 dir="auto"
                 placeholder={t.typeMessage}
                 disabled={busy || !worker}
-                className="h-11 min-w-0 flex-1 rounded-full bg-white px-4 text-[15px] text-[#282423] outline-none placeholder:text-[#a39d98]"
+                className="h-[42px] min-w-0 flex-1 rounded-full bg-[#f0eeea] px-4 text-[15px] text-[#1d1a19] outline-none placeholder:text-[#8f8882]"
               />
               <button
                 type="submit"
                 disabled={busy || !input.trim()}
                 aria-label={t.send}
-                className="grid size-11 place-items-center rounded-full bg-primary text-white disabled:opacity-40"
+                className="grid size-[42px] place-items-center rounded-full bg-[#151311] text-white disabled:opacity-40"
               >
-                <svg viewBox="0 0 24 24" className="size-5" fill="currentColor" aria-hidden="true">
+                <svg viewBox="0 0 24 24" className="size-[18px] rtl:-scale-x-100" fill="currentColor" aria-hidden="true">
                   <path d="M3 20l18-8L3 4v6l12 2-12 2z" />
                 </svg>
               </button>
             </form>
           </div>
         </div>
-        {worker && <p className="mt-3 text-center text-[0.8125rem] text-muted">{t.phoneOf(worker.name)}</p>}
-      </div>
+        {worker && <p className="mt-3.5 text-center text-[13px] font-semibold text-night-muted">{t.phoneOf(worker.name)}</p>}
+      </motion.div>
     </div>
+  );
+}
+
+function Badge({ hr = false, children }: { hr?: boolean; children: React.ReactNode }) {
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full py-[3px] pe-[9px] ps-[7px] text-[11.5px] font-semibold ${
+        hr ? "bg-[#d71920]/10 text-[#c4161c]" : "bg-[#2e7d32]/10 text-[#2e7d32]"
+      }`}
+    >
+      <svg
+        viewBox="0 0 24 24"
+        className="size-3"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M5 12.5l4.5 4.5L19 7" />
+      </svg>
+      {children}
+    </span>
   );
 }
