@@ -106,8 +106,9 @@ export default function Presenter() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const el = e.target as HTMLElement;
-      if (el.closest("input, textarea, select, [contenteditable=true]") || e.metaKey || e.ctrlKey || e.altKey) return;
+      const el = e.target;
+      const typing = el instanceof Element && el.closest("input, textarea, select, [contenteditable=true]");
+      if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key === "p" || e.key === "P") setOn((v) => !v);
       else if (!on) return;
       else if (e.key === "ArrowRight") go(step + 1);

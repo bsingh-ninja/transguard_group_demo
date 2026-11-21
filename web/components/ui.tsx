@@ -77,11 +77,14 @@ export function AnimatedNumber({
   decimals = 0,
   suffix = "",
   from,
+  group = false,
 }: {
   value: number;
   decimals?: number;
   suffix?: string;
   from?: number;
+  /** show thousands separators (8,383) */
+  group?: boolean;
 }) {
   const reduce = useReducedMotion();
   const [shown, setShown] = useState(from ?? value);
@@ -105,7 +108,9 @@ export function AnimatedNumber({
   }, [value, reduce]);
   return (
     <>
-      {shown.toFixed(decimals)}
+      {group
+        ? shown.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
+        : shown.toFixed(decimals)}
       {suffix}
     </>
   );

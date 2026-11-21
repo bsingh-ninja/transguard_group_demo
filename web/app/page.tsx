@@ -4,10 +4,12 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import NightMap, { MapLegend } from "@/components/CoverageMap";
 import { FindCoverSheet, PlanSheet } from "@/components/CoverSheets";
+import SavingsCard from "@/components/SavingsCard";
 import { refreshCounts } from "@/components/Sidebar";
 import { AnimatedNumber, Avatar, ErrorBox, IconTile, Loading, Pill, Ring, WakingUp } from "@/components/ui";
 import { Gap, getJSON, loadWithWake, Overview, postJSON, Site } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
+import { reasonLine } from "@/lib/reasons";
 import { fade, rise, SPRING, SPRING_SNAP, TONIGHT } from "@/lib/motion";
 
 export default function Tonight() {
@@ -19,6 +21,7 @@ export default function Tonight() {
   const [open, setOpen] = useState<Gap | null>(null);
   const [planOpen, setPlanOpen] = useState(false);
   const [waking, setWaking] = useState(false);
+  const [tick, setTick] = useState(0); // changes whenever the roster is reloaded, so the money card follows
 
   const load = useCallback(() => {
     setError("");
@@ -29,6 +32,7 @@ export default function Tonight() {
       .then(([o, g]) => {
         setData(o);
         setGaps(g);
+        setTick((n) => n + 1);
         refreshCounts();
       })
       .catch((e) => setError(String(e.message)))
@@ -263,6 +267,9 @@ export default function Tonight() {
                           <span className="min-w-0 flex-1">
                             <span className="block font-bold text-ink">{g.worker}</span>
                             <span className="block truncate text-[13px] text-muted">{g.site}</span>
+                            {g.reasons?.length ? (
+                              <span className="block truncate text-[12.5px] font-semibold text-warn-ink">{reasonLine(t, g.reasons)}</span>
+                            ) : null}
                           </span>
                           <Pill tone="warn">
                             <span dir="ltr">{Math.round((g.noshow_risk ?? 0) * 100)}%</span>
@@ -277,7 +284,9 @@ export default function Tonight() {
           </>
         )}
 
-        <motion.div {...fade(reduce, TONIGHT.side[2])} className="flex items-start gap-3 rounded-2xl bg-surface-2 px-4 py-3.5">
+        <SavingsCard refresh={tick} delay={TONIGHT.side[2]} />
+
+        <motion.div {...fade(reduce, TONIGHT.side[2] + 0.06)} className="flex items-start gap-3 rounded-2xl bg-surface-2 px-4 py-3.5">
           <svg
             viewBox="0 0 24 24"
             className="mt-px size-5 shrink-0 text-gold-ink"

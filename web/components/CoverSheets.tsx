@@ -3,10 +3,11 @@
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
 import { Avatar, CloseButton, IconTile, Ring, Sheet, Skeleton, StatTile } from "@/components/ui";
-import { assignAll, AssignLine, AssignResult, Candidate, Gap, getJSON, Plan, postJSON } from "@/lib/api";
+import { assignAll, AssignLine, AssignResult, Candidate, Gap, getJSON, Plan, postJSON, Reason } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 import { isRtl, NATIVE } from "@/lib/languages";
 import { EASE_OUT, rise, SPRING, stagger } from "@/lib/motion";
+import { reasonText } from "@/lib/reasons";
 
 type Message = AssignResult["message"];
 
@@ -69,6 +70,49 @@ function Spinner({ label }: { label: string }) {
 
 function ErrorLine({ text }: { text: string }) {
   return text ? <p className="mb-3 rounded-xl bg-crit/5 p-3 text-sm text-crit">{text}</p> : null;
+}
+
+/**
+ * Why a likely no-show may not turn up, straight from the model: each reason with the guard's figure, the typical
+ * guard's figure, and a bar for how much it raises the risk. The bars grow once, biggest first.
+ */
+function WhyBox({ name, risk, reasons }: { name: string; risk: number; reasons: Reason[] }) {
+  const { t } = useLang();
+  const reduce = useReducedMotion();
+  return (
+    <motion.div
+      {...rise(reduce, 0.12, 8, 0.45)}
+      className="mb-4 flex flex-col gap-3 rounded-[18px] bg-accent-soft p-4 shadow-[inset_0_0_0_1px_var(--night-edge)]"
+    >
+      <h3 className="flex items-center gap-2 text-[14px] font-bold text-ink">
+        {t.whyMayNotShow(name)}
+        <span className="ms-auto rounded-full bg-warn/13 px-2.5 py-0.5 text-[12.5px] font-bold text-warn-ink" dir="ltr">
+          {Math.round(risk * 100)}%
+        </span>
+      </h3>
+      <ul className="flex flex-col gap-3">
+        {reasons.map((r, i) => {
+          const { text, typical } = reasonText(t, r);
+          return (
+            <li key={r.key} className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-3 gap-y-1.5">
+              <span className="text-[14px] font-semibold text-ink">{text}</span>
+              <span className="num whitespace-nowrap text-[12.5px] text-muted">{typical}</span>
+              <span className="col-span-2 h-1.5 overflow-hidden rounded-full bg-surface" aria-hidden="true">
+                <motion.span
+                  className="block h-full origin-left rounded-full bg-glow-warn"
+                  style={{ width: `${Math.max(r.weight * 100, 6)}%` }}
+                  initial={reduce ? false : { scaleX: 0 }}
+                  animate={{ scaleX: 1 }}
+                  transition={{ duration: 0.7, ease: EASE_OUT, delay: 0.3 + i * 0.08 }}
+                />
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+      <p className="text-[12px] text-muted">{t.fromModel}</p>
+    </motion.div>
+  );
 }
 
 /* ---------------- Find cover ---------------- */
@@ -145,6 +189,9 @@ export function FindCoverSheet({
       )}
     >
       <ErrorLine text={error} />
+      {gap.kind === "at_risk" && gap.reasons?.length && !result ? (
+        <WhyBox name={(gap.worker ?? "").split(" ")[0]} risk={gap.noshow_risk ?? 0} reasons={gap.reasons} />
+      ) : null}
       {result ? (
         <motion.div {...rise(reduce, 0, 12)} className="rounded-[22px] bg-surface-2 p-4">
           <div className="mb-2.5 flex items-center gap-2 text-[13.5px] font-bold text-ok">
@@ -372,7 +419,7 @@ export function PlanSheet({ onClose, onDone }: { onClose: () => void; onDone: ()
             <CloseButton onClick={close} label={t.close} dark />
           </div>
           {plan && (
-            <div className="mt-4 grid grid-cols-3 gap-2">
+            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
               <StatTile dark value={`${plan.total_commute_km} km`} label={t.totalCommute} />
               <StatTile
                 dark
@@ -381,6 +428,9 @@ export function PlanSheet({ onClose, onDone }: { onClose: () => void; onDone: ()
                 label={t.totalOvertime}
               />
               <StatTile dark value={kept ? t.allKept : plan.status} label={t.rulesKept} />
+              <div className="rounded-xl bg-ok/10 shadow-[inset_0_0_0_1.5px_rgb(46_125_50/0.35)]">
+                <StatTile dark value={`AED ${plan.estimated_saving_aed.toLocaleString("en-US")}`} tone="ok" label={t.savesAbout} />
+              </div>
             </div>
           )}
         </div>
