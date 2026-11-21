@@ -55,6 +55,8 @@ def overview():
     return {
         "date": TODAY.isoformat(),
         "shift": "Night shift, 19:00 to 07:00",
+        "starts": NIGHT_START.isoformat(),
+        "ends": NIGHT_END.isoformat(),
         "totals": {
             "sites": len(sites),
             "required": required,
@@ -72,7 +74,7 @@ def overview():
 
 @router.get("/sites/list")  # must come before /sites/{site_id}, or "list" is read as a site id
 def site_list():
-    return fetch_all("select id, name, area from transguard.site order by name")
+    return fetch_all("select id, name, area, type from transguard.site order by name")
 
 
 @router.get("/sites/{site_id}")
@@ -184,6 +186,16 @@ def backfill_candidates(site_id: str):
     if not s:
         raise HTTPException(404, "Unknown site")
     return {"site": s, "candidates": _candidates(s)}
+
+
+@router.get("/backfill/{site_id}/message/{worker_id}")
+def backfill_message_preview(site_id: str, worker_id: str):
+    """The shift message a guard would receive, shown before approving. Writes nothing."""
+    s = fetch_one("select * from transguard.site where id = %s", (site_id,))
+    w = fetch_one("select * from transguard.worker where id = %s", (worker_id,))
+    if not s or not w:
+        raise HTTPException(404, "Unknown site or worker")
+    return _message(w, s)
 
 
 @router.post("/backfill/plan")
