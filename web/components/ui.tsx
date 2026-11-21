@@ -15,17 +15,17 @@ export function Loading() {
     <div className="flex flex-wrap items-start gap-6" aria-busy="true">
       <div className="night min-w-0 flex-[999_1_600px] space-y-6 p-5 sm:p-7">
         <div className="flex flex-wrap items-center justify-between gap-6">
-          <div className="flex-[1_1_300px] space-y-3 [&_.skeleton]:bg-none [&_.skeleton]:bg-white/8">
+          <div className="flex-[1_1_300px] space-y-3 [&_.skeleton]:bg-none [&_.skeleton]:bg-night-tile">
             <Skeleton className="h-6 w-56 rounded-full" />
             <Skeleton className="h-11 w-[min(420px,90%)]" />
             <Skeleton className="h-11 w-[min(300px,70%)]" />
             <Skeleton className="h-11 w-40 rounded-[13px]" />
           </div>
-          <div className="size-[176px] rounded-full border-[12px] border-white/8" />
+          <div className="size-[176px] rounded-full border-[12px] border-night-tile" />
         </div>
         <div className="flex flex-wrap gap-3">
-          <div className="h-[260px] flex-[1_1_260px] rounded-2xl bg-white/5" />
-          <div className="h-[260px] flex-[1_1_260px] rounded-2xl bg-white/5" />
+          <div className="h-[260px] flex-[1_1_260px] rounded-2xl bg-night-tile" />
+          <div className="h-[260px] flex-[1_1_260px] rounded-2xl bg-night-tile" />
         </div>
       </div>
       <div className="flex min-w-0 flex-[1_1_340px] flex-col gap-3">
@@ -172,7 +172,7 @@ const AVATAR: Record<"neutral" | "warn" | "gold" | "night", string> = {
   neutral: "bg-surface-2 text-ink",
   warn: "bg-warn/13 text-warn-ink",
   gold: "bg-accent-soft text-gold-ink ring-2 ring-gold",
-  night: "bg-[#2a2622] text-[#e8cf9c] ring-2 ring-gold",
+  night: "bg-accent-soft text-gold-ink ring-2 ring-gold",
 };
 
 export function Avatar({ name, tone = "neutral", size = 40 }: { name: string; tone?: keyof typeof AVATAR; size?: number }) {
@@ -255,7 +255,7 @@ export function Ring({
   size = 176,
   value,
   inner,
-  color = "var(--night-ink)",
+  color = "var(--night-accent)",
   innerColor = "var(--glow-warn)",
   stroke = 12,
   delay = 0.24,
@@ -329,7 +329,7 @@ export function Trail({ steps, dark = false }: { steps: { title: string; sub?: s
             <motion.div
               className="h-full origin-left rounded-full rtl:origin-right"
               initial={reduce ? false : { scaleX: 0 }}
-              animate={{ scaleX: 1, backgroundColor: s.done ? "var(--night-ok)" : dark ? "rgba(255,255,255,0.18)" : "var(--border)" }}
+              animate={{ scaleX: 1, backgroundColor: s.done ? "var(--night-ok)" : "var(--night-line)" }}
               transition={
                 reduce
                   ? { duration: 0 }
@@ -507,7 +507,7 @@ export function CloseButton({
       ref={ref}
       onClick={onClick}
       aria-label={label}
-      className={`grid size-9 shrink-0 place-items-center rounded-full ${dark ? "bg-white/10 text-night-ink hover:bg-white/16" : "bg-surface-2 text-ink hover:bg-border"}`}
+      className={`grid size-9 shrink-0 place-items-center rounded-full ${dark ? "bg-night-tile text-night-ink hover:opacity-80" : "bg-surface-2 text-ink hover:bg-border"}`}
     >
       <svg
         viewBox="0 0 24 24"

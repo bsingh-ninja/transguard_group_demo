@@ -8,12 +8,12 @@ import { getJSON, loadWithWake, postJSON, SiteOption, Ticket, Triage } from "@/l
 import { useLang } from "@/lib/i18n";
 import { EASE_OUT, rise, SPRING_SNAP } from "@/lib/motion";
 
-/** Priority tile colours on the dark card: red for P1, amber for P2, gold for P3, quiet for P4 */
+/** Priority tile colours on the situation panel: red for P1, amber for P2, gold for P3, quiet for P4 */
 const TILE: Record<string, string> = {
   P1: "bg-glow-crit text-white shadow-[0_12px_30px_-10px_rgb(255_77_83/0.6)]",
   P2: "bg-glow-warn text-[#151311] shadow-[0_12px_30px_-10px_rgb(240_166_58/0.5)]",
   P3: "bg-gold text-[#151311]",
-  P4: "bg-white/12 text-white",
+  P4: "bg-night-tile text-night-strong",
 };
 const PILL_TONE: Record<string, "crit" | "warn" | "gold" | "neutral"> = { P1: "crit", P2: "warn", P3: "gold", P4: "neutral" };
 
@@ -124,11 +124,11 @@ export default function Tickets() {
             return (
               <li key={tk.id} className="relative">
                 {on && (
-                  // the dark selection slides between rows instead of jumping
+                  // the gold-edged selection slides between rows instead of jumping
                   <motion.span
                     layoutId="ticket-on"
                     transition={reduce ? { duration: 0 } : SPRING_SNAP}
-                    className="absolute inset-0 rounded-2xl bg-night"
+                    className="absolute inset-0 rounded-2xl bg-accent-soft shadow-[0_0_0_1.5px_var(--gold)]"
                     aria-hidden="true"
                   />
                 )}
@@ -136,33 +136,27 @@ export default function Tickets() {
                   data-tour={/^lift/i.test(tk.description) ? "ticket-lift" : undefined}
                   onClick={() => setSelected(tk.id)}
                   aria-current={on}
-                  className={`press-soft relative block w-full rounded-2xl px-3.5 py-3 text-start transition-colors duration-200 ${on ? "text-night-ink" : "text-ink hover:bg-surface-2/60"}`}
+                  className={`press-soft relative block w-full rounded-2xl px-3.5 py-3 text-start transition-colors duration-200 ${on ? "text-ink" : "text-ink hover:bg-surface-2/60"}`}
                 >
                   <div className="flex items-center gap-2 text-[12px]">
                     {tk.triage && (
-                      <span className={`rounded-md px-1.5 py-px font-extrabold ${on ? TILE[tk.triage.priority] + " shadow-none" : ""}`}>
-                        {on ? tk.triage.priority : <Pill tone={PILL_TONE[tk.triage.priority]}>{tk.triage.priority}</Pill>}
-                      </span>
+                      <Pill tone={PILL_TONE[tk.triage.priority]} className="font-extrabold">
+                        {tk.triage.priority}
+                      </Pill>
                     )}
                     <span
                       className={`rounded-full px-2 py-0.5 font-bold ${
-                        tk.status === "dispatched"
-                          ? on
-                            ? "bg-night-ok/16 text-night-ok"
-                            : "bg-ok/10 text-ok"
-                          : on
-                            ? "bg-white/10 text-night-soft"
-                            : "bg-surface-2 text-muted"
+                        tk.status === "dispatched" ? "bg-ok/10 text-ok" : on ? "bg-surface text-muted" : "bg-surface-2 text-muted"
                       }`}
                     >
                       {t.status[tk.status as keyof typeof t.status] ?? tk.status}
                     </span>
-                    <span className={`ms-auto ${on ? "text-night-muted" : "text-muted/80"}`}>
+                    <span className="ms-auto text-muted/80">
                       {tk.channel} · <span dir="ltr">{tk.created}</span>
                     </span>
                   </div>
                   <div className="mt-1.5 text-[14.5px] font-bold">{tk.site}</div>
-                  <p dir="auto" className={`line-clamp-2 text-start text-[13px] leading-snug ${on ? "text-night-soft" : "text-muted"}`}>
+                  <p dir="auto" className="line-clamp-2 text-start text-[13px] leading-snug text-muted">
                     {tk.description}
                   </p>
                 </button>
@@ -279,9 +273,11 @@ function TriageView({ ticket, tr, busy, onDispatch }: { ticket: Ticket; tr: Tria
             <div className="text-[13px] font-semibold text-night-muted">
               {ticket.site} · {tr.trade} · {t.reportedVia(ticket.channel, ticket.created)}
             </div>
-            <h2 className="mt-1 text-[26px] font-bold leading-[1.15] tracking-[-0.024em] text-white rtl:tracking-normal">{tr.issue}</h2>
+            <h2 className="mt-1 text-[26px] font-bold leading-[1.15] tracking-[-0.024em] text-night-strong rtl:tracking-normal">
+              {tr.issue}
+            </h2>
             <div className="mt-2.5 flex flex-wrap gap-2">
-              <span className="inline-flex items-center gap-[7px] rounded-full bg-white/8 px-[11px] py-[5px] text-[13px] font-semibold">
+              <span className="inline-flex items-center gap-[7px] rounded-full bg-night-tile px-[11px] py-[5px] text-[13px] font-semibold">
                 <svg
                   viewBox="0 0 24 24"
                   className="size-3.5"
@@ -297,7 +293,7 @@ function TriageView({ ticket, tr, busy, onDispatch }: { ticket: Ticket; tr: Tria
                 {t.respondWithin(tr.sla_hours)} · {t.dueBy} <span dir="ltr">{tr.due_by}</span>
               </span>
               {tr.safety_risk && (
-                <span className="inline-flex items-center gap-[7px] rounded-full bg-glow-crit/16 px-[11px] py-[5px] text-[13px] font-semibold text-[#ff8a8e]">
+                <span className="inline-flex items-center gap-[7px] rounded-full bg-glow-crit/16 px-[11px] py-[5px] text-[13px] font-semibold text-night-crit">
                   <svg
                     viewBox="0 0 24 24"
                     className="size-3.5"

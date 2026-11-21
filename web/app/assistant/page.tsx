@@ -109,17 +109,17 @@ export default function Assistant() {
                   aria-pressed={on}
                   className={`press-soft flex min-w-0 flex-col gap-0.5 rounded-2xl p-3.5 text-start transition-[background-color,box-shadow,color] duration-300 ${
                     on
-                      ? "bg-night text-night-ink shadow-[0_16px_30px_-18px_rgb(20_18_17/0.7)]"
+                      ? "bg-accent-soft text-ink shadow-[0_0_0_1.5px_var(--gold),0_14px_28px_-20px_rgb(120_95_40/0.5)]"
                       : "bg-surface text-ink shadow-[var(--shadow-card)] hover:bg-surface-2/50"
                   }`}
                 >
                   <span
-                    className={`text-[23px] font-semibold leading-[1.35] transition-colors duration-300 ${on ? "text-[#e8cf9c]" : ""} ${scriptFont(w.language)}`}
+                    className={`text-[23px] font-semibold leading-[1.35] transition-colors duration-300 ${on ? "text-gold-ink" : ""} ${scriptFont(w.language)}`}
                   >
                     {NATIVE[w.language] ?? w.language}
                   </span>
                   <span className="truncate text-[13.5px] font-bold">{w.name}</span>
-                  <span className={`text-[12px] ${on ? "text-night-muted" : "text-muted"}`}>
+                  <span className="text-[12px] text-muted">
                     {w.language} · {w.nationality}
                   </span>
                 </button>

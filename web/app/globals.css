@@ -7,72 +7,72 @@
   Type: Open Sans (Transguard's site face), IBM Plex Sans Arabic, tabular figures for data.
 */
 :root {
-  --bg: #f6f5f4;
+  --bg: #f5f3ee;
   --surface: #ffffff;
-  --surface-2: #efeeec;
-  --border: #e3e1de;
-  --hairline: #ebe9e6;
-  --sidebar: #faf9f7;
+  --surface-2: #efebe3;
+  --border: #e7e2d8;
+  --hairline: #eee9e0;
+  --sidebar: #faf8f4;
   --sidebar-fg: #1d1a19;
   --sidebar-muted: #77706c;
   --sidebar-active: #ffffff;
   --primary: #d71920;
   --primary-fg: #ffffff;
   --accent: #a2844b;
-  --accent-soft: #f3ecdf;
-  --text: #282423;
+  --accent-soft: #f6efe0;
+  --text: #1d1a19;
   --text-muted: #6b6563;
-  --map-land: #ebe8e4;
-  --map-sea: #dfe7ec;
-  --map-coast: #c9c3bd;
   --ok: #2e7d32;
   --warn: #c77700;
   --crit: #d71920;
   --shadow: 0 1px 2px rgb(40 36 35 / 0.05), 0 8px 24px -12px rgb(40 36 35 / 0.14);
-  --shadow-card: 0 1px 2px rgb(29 26 25 / 0.04), 0 12px 32px -20px rgb(29 26 25 / 0.25), 0 0 0 1px var(--border);
+  --shadow-card: 0 1px 2px rgb(29 26 25 / 0.04), 0 12px 32px -20px rgb(29 26 25 / 0.22), 0 0 0 1px var(--border);
   --warn-ink: #9a5d00;
   --gold: #d4b47a;
   --gold-ink: #7a6232;
 
-  /* Night cards: the dark "situation" surfaces, same in both themes except the edge */
-  --night: #151311;
-  --night-edge: rgb(255 255 255 / 0);
-  --night-shadow: 0 30px 60px -32px rgb(20 18 17 / 0.65);
-  --night-ink: #f4f1ee;
-  --night-soft: #c9c2bb;
-  --night-muted: #a8a19b;
-  --night-tile: rgb(255 255 255 / 0.06);
-  --night-line: rgb(255 255 255 / 0.08);
-  --night-crit: #ff6b70;
-  --night-warn: #f5b75a;
-  --night-ok: #4cc38a;
+  /* The situation panel ("hero" card on every screen): white with a gold edge in light, soft slate in dark */
+  --night: #ffffff;
+  --night-edge: #e3cf9f;
+  --night-shadow: 0 24px 48px -30px rgb(120 95 40 / 0.35);
+  --night-ink: #1d1a19;
+  --night-strong: #1d1a19;
+  --night-accent: #4f5d75;
+  --night-soft: #5f5955;
+  --night-muted: #8a837d;
+  --night-tile: #f6f1e6;
+  --night-line: #efe9dd;
+  --night-crit: #c4161c;
+  --night-warn: #b26a00;
+  --night-ok: #2e7d32;
+  --night-cta: #1d1a19;
+  --night-cta-ink: #ffffff;
   --glow-crit: #ff4d53;
   --glow-warn: #f0a63a;
-  --night-sea: #0e1317;
-  --night-land: #1f1c19;
-  --night-coast: rgb(255 255 255 / 0.14);
-  --night-light: #f3dfae;
+  --night-sea: #e4ecf1;
+  --night-land: #faf8f3;
+  --night-coast: #d9cfbd;
+  --night-light: #b8955a;
+  --night-grid: rgb(29 26 25 / 0.04);
 }
 
+/* Dark: soft slate blue, never black */
 :root[data-theme="dark"] {
-  --bg: #141211;
-  --surface: #1d1a19;
-  --surface-2: #262220;
-  --border: #36312e;
-  --hairline: #2c2826;
-  --sidebar: #100e0d;
-  --sidebar-fg: #f2efed;
-  --sidebar-muted: #9c958f;
-  --sidebar-active: #221f1d;
+  --bg: #151a24;
+  --surface: #1d2431;
+  --surface-2: #252e3e;
+  --border: #2c3546;
+  --hairline: #263042;
+  --sidebar: #121722;
+  --sidebar-fg: #e9edf3;
+  --sidebar-muted: #929bab;
+  --sidebar-active: #222b3b;
   --primary: #ec4a50;
   --primary-fg: #ffffff;
-  --accent: #c9a86c;
-  --accent-soft: #2e2720;
-  --text: #f2efed;
-  --text-muted: #a39d98;
-  --map-land: #24201e;
-  --map-sea: #171b1e;
-  --map-coast: #3a3431;
+  --accent: #d4b47a;
+  --accent-soft: #2f2f33;
+  --text: #e9edf3;
+  --text-muted: #a3abba;
   --ok: #5cbb84;
   --warn: #e5a84b;
   --crit: #ff5a5f;
@@ -80,9 +80,26 @@
   --shadow-card: 0 0 0 1px var(--border);
   --warn-ink: #f0a63a;
   --gold-ink: #d4b47a;
-  --night: #1b1917;
-  --night-edge: rgb(255 255 255 / 0.07);
-  --night-shadow: 0 30px 60px -32px rgb(0 0 0 / 0.8);
+  --night: #222b3b;
+  --night-edge: rgb(212 180 122 / 0.35);
+  --night-shadow: 0 30px 60px -32px rgb(0 0 0 / 0.6);
+  --night-ink: #e9edf3;
+  --night-strong: #ffffff;
+  --night-accent: #e9edf3;
+  --night-soft: #bcc4d2;
+  --night-muted: #929bab;
+  --night-tile: rgb(255 255 255 / 0.07);
+  --night-line: rgb(255 255 255 / 0.09);
+  --night-crit: #ff6b70;
+  --night-warn: #f5b75a;
+  --night-ok: #4cc38a;
+  --night-cta: #ffffff;
+  --night-cta-ink: #1d2431;
+  --night-sea: #18202d;
+  --night-land: #2a3446;
+  --night-coast: rgb(255 255 255 / 0.12);
+  --night-light: #f3dfae;
+  --night-grid: rgb(255 255 255 / 0.035);
   color-scheme: dark;
 }
 
@@ -110,6 +127,10 @@
   --color-gold-ink: var(--gold-ink);
   --color-night: var(--night);
   --color-night-ink: var(--night-ink);
+  --color-night-strong: var(--night-strong);
+  --color-night-accent: var(--night-accent);
+  --color-night-cta: var(--night-cta);
+  --color-night-cta-ink: var(--night-cta-ink);
   --color-night-soft: var(--night-soft);
   --color-night-muted: var(--night-muted);
   --color-night-tile: var(--night-tile);
@@ -196,9 +217,8 @@ html[lang="ar"] .title {
   color: var(--night-ink);
   border-radius: 24px;
   box-shadow:
-    0 0 0 1px var(--night-edge),
-    var(--night-shadow),
-    inset 0 1px 0 rgb(255 255 255 / 0.06);
+    0 0 0 1.5px var(--night-edge),
+    var(--night-shadow);
 }
 
 :focus-visible {

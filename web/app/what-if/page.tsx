@@ -115,12 +115,12 @@ export default function WhatIf() {
       {result && (
         <div className={`flex flex-wrap items-stretch gap-[22px] transition-opacity duration-300 ${busy ? "opacity-60" : ""}`}>
           <motion.section {...rise(reduce, 0, 18, 0.62)} aria-label={t.covered} className="night min-w-0 flex-[999_1_540px] p-[26px]">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/7 px-[11px] py-[5px] text-[12.5px] font-semibold text-night-soft">
+            <div className="inline-flex items-center gap-2 rounded-full bg-night-tile px-[11px] py-[5px] text-[12.5px] font-semibold text-night-soft">
               {t.contractPill(asked.guards, asked.area, date)}
             </div>
             <div className="mt-[18px] flex flex-wrap items-end gap-x-11 gap-y-5">
               <Big label={t.covered}>
-                <span className="text-[64px] text-white">
+                <span className="text-[64px] text-night-strong">
                   <AnimatedNumber value={result.covered} from={0} />
                 </span>
                 <span className="ms-2 text-[18px] font-semibold tracking-normal text-night-muted">
@@ -152,7 +152,7 @@ export default function WhatIf() {
             >
               <motion.div className="bg-gold" animate={{ width: pct(result.female) }} transition={reduce ? { duration: 0 } : SPRING_SLOW} />
               <motion.div
-                className="bg-night-ink"
+                className="bg-night-accent"
                 animate={{ width: pct(result.covered - result.female) }}
                 transition={reduce ? { duration: 0 } : SPRING_SLOW}
               />
@@ -161,7 +161,7 @@ export default function WhatIf() {
             <h2 className="mb-3 mt-6 text-[13px] font-semibold text-night-muted">{t.crewSquares(asked.guards)}</h2>
             <CrewGrid total={asked.guards} covered={result.covered} female={result.female} />
             <div className="mt-3.5 flex flex-wrap gap-x-5 gap-y-1 text-[13px] text-night-muted">
-              <Key className="bg-night-ink" label={`${t.legendOurs} ${result.covered - result.female}`} />
+              <Key className="bg-night-accent" label={`${t.legendOurs} ${result.covered - result.female}`} />
               <Key className="bg-gold" label={`${t.legendFemale} ${result.female}`} />
               {result.hiring_gap > 0 && (
                 <Key className="border-2 border-dashed border-night-crit" label={`${t.legendHire} ${result.hiring_gap}`} />
@@ -265,7 +265,7 @@ function CrewGrid({ total, covered, female }: { total: number; covered: number; 
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.38, ease: EASE_OUT, delay }}
             className={`${size} box-border transition-colors duration-500 ${
-              kind === "female" ? "bg-gold" : kind === "ours" ? "bg-night-ink" : "border-2 border-dashed border-night-crit"
+              kind === "female" ? "bg-gold" : kind === "ours" ? "bg-night-accent" : "border-2 border-dashed border-night-crit"
             }`}
           />
         );
@@ -287,7 +287,7 @@ function Chip({ tone, children }: { tone: "warn" | "ok"; children: [React.ReactN
   return (
     <span
       className={`inline-flex items-center gap-2 rounded-full px-3 py-[7px] text-[13.5px] font-semibold ${
-        tone === "warn" ? "bg-glow-warn/16 text-night-warn" : "bg-night-ok/14 text-[#6fd4a2]"
+        tone === "warn" ? "bg-glow-warn/16 text-night-warn" : "bg-night-ok/14 text-night-ok"
       }`}
     >
       <svg

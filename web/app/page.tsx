@@ -65,7 +65,7 @@ export default function Tonight() {
       <motion.section aria-label={t.navTonight} {...rise(reduce, 0, 18, 0.62)} className="night min-w-0 flex-[999_1_600px] p-5 sm:p-7">
         <div className="flex flex-wrap items-center justify-between gap-6">
           <div className="min-w-0 flex-[1_1_300px]">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/7 py-[5px] pe-[11px] ps-[9px] text-[12.5px] font-semibold text-night-soft">
+            <div className="inline-flex items-center gap-2 rounded-full bg-night-tile py-[5px] pe-[11px] ps-[9px] text-[12.5px] font-semibold text-night-soft">
               <span className="relative size-2">
                 {!reduce && <span className="absolute inset-0 animate-ping rounded-full bg-night-ok/60 [animation-duration:2.4s]" />}
                 <span className="absolute inset-0 rounded-full bg-night-ok shadow-[0_0_0_4px_rgb(76_195_138/0.2)]" />
@@ -80,7 +80,7 @@ export default function Tonight() {
                 animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 exit={reduce ? { opacity: 0 } : { opacity: 0, y: -10, filter: "blur(6px)" }}
                 transition={{ type: "spring", bounce: 0, duration: 0.5 }}
-                className="mt-4 max-w-[13ch] text-[clamp(2.1rem,1.4rem+1.6vw,2.875rem)] font-bold leading-[1.04] tracking-[-0.034em] text-white rtl:leading-[1.25] rtl:tracking-normal"
+                className="mt-4 max-w-[13ch] text-[clamp(2.1rem,1.4rem+1.6vw,2.875rem)] font-bold leading-[1.04] tracking-[-0.034em] text-night-strong rtl:leading-[1.25] rtl:tracking-normal"
               >
                 {t.headline(totals.vacancies, totals.at_risk)}
               </motion.h1>
@@ -93,7 +93,7 @@ export default function Tonight() {
                 <button
                   data-tour="fill-all"
                   onClick={() => setPlanOpen(true)}
-                  className="inline-flex h-[46px] items-center gap-2 rounded-[13px] bg-white px-5 text-[15px] font-bold text-[#151311] hover:bg-[#f4f1ee]"
+                  className="inline-flex h-[46px] items-center gap-2 rounded-[13px] bg-night-cta px-5 text-[15px] font-bold text-night-cta-ink hover:opacity-90"
                 >
                   <svg
                     viewBox="0 0 24 24"
@@ -112,7 +112,7 @@ export default function Tonight() {
               <button
                 data-tour="reset"
                 onClick={() => postJSON("/transguard/reset").then(load)}
-                className="h-[46px] rounded-[13px] bg-white/8 px-[18px] text-[14.5px] font-semibold text-[#e8e2dc] hover:bg-white/12"
+                className="h-[46px] rounded-[13px] bg-night-tile px-[18px] text-[14.5px] font-semibold text-night-soft hover:opacity-80"
               >
                 {t.resetDemo}
               </button>
@@ -128,7 +128,7 @@ export default function Tonight() {
               innerDelay={TONIGHT.ringAfter}
             >
               <div>
-                <div className="num text-[30px] font-bold leading-none tracking-[-0.03em] text-white" dir="ltr">
+                <div className="num text-[30px] font-bold leading-none tracking-[-0.03em] text-night-strong" dir="ltr">
                   <AnimatedNumber value={totals.coverage_pct} decimals={1} suffix="%" from={0} />
                 </div>
                 <div className="mt-1.5 text-[11.5px] font-semibold text-night-muted">{t.coveredNow}</div>
@@ -137,10 +137,10 @@ export default function Tonight() {
             <div className="flex flex-col gap-2.5 text-[12.5px] text-night-muted">
               <div>
                 <div className="flex items-center gap-[7px]">
-                  <span className="h-1 w-2.5 rounded bg-night-ink" />
+                  <span className="h-1 w-2.5 rounded bg-night-accent" />
                   {t.ringNow}
                 </div>
-                <div className="num text-[17px] font-bold text-white" dir="ltr">
+                <div className="num text-[17px] font-bold text-night-strong" dir="ltr">
                   {totals.coverage_pct}%
                 </div>
               </div>

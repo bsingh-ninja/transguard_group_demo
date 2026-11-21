@@ -82,10 +82,10 @@ export default function NightMap({ data, region, onPick }: { data: Overview; reg
       >
         <rect width={W} height={H} fill="var(--night-sea)" />
         {Array.from({ length: Math.ceil(W / 40) }, (_, i) => (
-          <line key={`v${i}`} x1={i * 40} y1="0" x2={i * 40} y2={H} stroke="#fff" strokeOpacity="0.035" />
+          <line key={`v${i}`} x1={i * 40} y1="0" x2={i * 40} y2={H} stroke="var(--night-grid)" />
         ))}
         {Array.from({ length: Math.ceil(H / 40) }, (_, i) => (
-          <line key={`h${i}`} x1="0" y1={i * 40} x2={W} y2={i * 40} stroke="#fff" strokeOpacity="0.035" />
+          <line key={`h${i}`} x1="0" y1={i * 40} x2={W} y2={i * 40} stroke="var(--night-grid)" />
         ))}
         <polygon points={land} fill="var(--night-land)" stroke="var(--night-coast)" strokeWidth="1.2" />
 
@@ -198,7 +198,7 @@ export default function NightMap({ data, region, onPick }: { data: Overview; reg
           })}
         </AnimatePresence>
       </svg>
-      <figcaption className="absolute bottom-2.5 start-2.5 rounded-full bg-[rgb(21_19_17/0.8)] px-2.5 py-1 text-[12px] font-bold text-night-ink shadow-[0_0_0_1px_rgb(255_255_255/0.08)]">
+      <figcaption className="absolute bottom-2.5 start-2.5 rounded-full bg-night/90 px-2.5 py-1 text-[12px] font-bold text-night-ink shadow-[0_0_0_1px_var(--night-line)]">
         {city} · <span dir="ltr">{t.nSites(sites.length)}</span>
       </figcaption>
     </figure>

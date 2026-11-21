@@ -172,7 +172,7 @@ export function FindCoverSheet({
                   </svg>
                   {t.bestMatch}
                 </div>
-                <div className="text-[21px] font-bold leading-tight tracking-[-0.016em] text-white">{best.name}</div>
+                <div className="text-[21px] font-bold leading-tight tracking-[-0.016em] text-night-strong">{best.name}</div>
                 <div className="text-[13px] text-night-muted">
                   {best.role} · {best.accommodation}
                 </div>
@@ -185,7 +185,7 @@ export function FindCoverSheet({
                 delay={0.38}
                 label={`${best.reliability_pct}% ${t.reliability}`}
               >
-                <span className="num text-[13px] font-bold text-white" dir="ltr">
+                <span className="num text-[13px] font-bold text-night-strong" dir="ltr">
                   {Math.round(best.reliability_pct)}%
                 </span>
               </Ring>
@@ -208,10 +208,10 @@ export function FindCoverSheet({
               onClick={() => approve(best)}
               disabled={busy}
               data-tour="approve-best"
-              className="flex h-[50px] items-center justify-center gap-2.5 rounded-[14px] bg-white text-[15px] font-bold text-[#151311] hover:bg-[#f4f1ee] disabled:opacity-60"
+              className="flex h-[50px] items-center justify-center gap-2.5 rounded-[14px] bg-night-cta text-[15px] font-bold text-night-cta-ink hover:opacity-90 disabled:opacity-60"
             >
               {t.approve}
-              <span className="rounded-full bg-[#f4eee2] px-2.5 py-0.5 text-[13px] font-semibold text-[#7a6232]">
+              <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-[13px] font-semibold text-gold-ink">
                 {NATIVE[best.language] ?? best.language}
               </span>
             </button>
@@ -365,7 +365,7 @@ export function PlanSheet({ onClose, onDone }: { onClose: () => void; onDone: ()
                 </svg>
                 {t.planTitle}
               </div>
-              <h2 className="mt-1.5 text-[26px] font-bold leading-[1.12] tracking-[-0.024em] text-white">
+              <h2 className="mt-1.5 text-[26px] font-bold leading-[1.12] tracking-[-0.024em] text-night-strong">
                 {plan ? t.planDone(total, plan.solve_ms) : t.loading}
               </h2>
             </div>
@@ -463,7 +463,7 @@ export function PlanSheet({ onClose, onDone }: { onClose: () => void; onDone: ()
                   animate={{ width: `${Math.max(done / Math.max(total, 1), 0.04) * 100}%` }}
                   transition={reduce ? { duration: 0 } : SPRING}
                 />
-                <span className="absolute inset-0 grid place-items-center text-[14.5px] font-bold text-white mix-blend-difference">
+                <span className="absolute inset-0 grid place-items-center text-[14.5px] font-bold text-night-strong mix-blend-difference">
                   {busy && done === 0 ? t.notifying : status}
                 </span>
               </div>
