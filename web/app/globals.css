@@ -28,33 +28,29 @@
   --warn: #c77700;
   --crit: #d71920;
   --shadow: 0 1px 2px rgb(40 36 35 / 0.05), 0 8px 24px -12px rgb(40 36 35 / 0.14);
-}
+  --shadow-card: 0 1px 2px rgb(29 26 25 / 0.04), 0 12px 32px -20px rgb(29 26 25 / 0.25), 0 0 0 1px var(--border);
+  --warn-ink: #9a5d00;
+  --gold: #d4b47a;
+  --gold-ink: #7a6232;
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #141211;
-    --surface: #1d1a19;
-    --surface-2: #262220;
-    --border: #36312e;
-    --hairline: #2c2826;
-    --sidebar: #0e0c0b;
-    --sidebar-fg: #f2efed;
-    --sidebar-muted: #9c958f;
-    --primary: #ec4a50;
-    --primary-fg: #ffffff;
-    --accent: #c9a86c;
-    --accent-soft: #2e2720;
-    --text: #f2efed;
-    --text-muted: #a39d98;
-    --map-land: #24201e;
-    --map-sea: #171b1e;
-    --map-coast: #3a3431;
-    --ok: #5cbb84;
-    --warn: #e5a84b;
-    --crit: #ff5a5f;
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 10px 30px -12px rgb(0 0 0 / 0.5);
-    color-scheme: dark;
-  }
+  /* Night cards: the dark "situation" surfaces, same in both themes except the edge */
+  --night: #151311;
+  --night-edge: rgb(255 255 255 / 0);
+  --night-shadow: 0 30px 60px -32px rgb(20 18 17 / 0.65);
+  --night-ink: #f4f1ee;
+  --night-soft: #c9c2bb;
+  --night-muted: #a8a19b;
+  --night-tile: rgb(255 255 255 / 0.06);
+  --night-line: rgb(255 255 255 / 0.08);
+  --night-crit: #ff6b70;
+  --night-warn: #f5b75a;
+  --night-ok: #4cc38a;
+  --glow-crit: #ff4d53;
+  --glow-warn: #f0a63a;
+  --night-sea: #0e1317;
+  --night-land: #1f1c19;
+  --night-coast: rgb(255 255 255 / 0.14);
+  --night-light: #f3dfae;
 }
 
 :root[data-theme="dark"] {
@@ -79,6 +75,12 @@
   --warn: #e5a84b;
   --crit: #ff5a5f;
   --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 10px 30px -12px rgb(0 0 0 / 0.5);
+  --shadow-card: 0 0 0 1px var(--border);
+  --warn-ink: #f0a63a;
+  --gold-ink: #d4b47a;
+  --night: #1b1917;
+  --night-edge: rgb(255 255 255 / 0.07);
+  --night-shadow: 0 30px 60px -32px rgb(0 0 0 / 0.8);
   color-scheme: dark;
 }
 
@@ -100,6 +102,20 @@
   --color-ok: var(--ok);
   --color-warn: var(--warn);
   --color-crit: var(--crit);
+  --color-warn-ink: var(--warn-ink);
+  --color-gold: var(--gold);
+  --color-gold-ink: var(--gold-ink);
+  --color-night: var(--night);
+  --color-night-ink: var(--night-ink);
+  --color-night-soft: var(--night-soft);
+  --color-night-muted: var(--night-muted);
+  --color-night-tile: var(--night-tile);
+  --color-night-line: var(--night-line);
+  --color-night-crit: var(--night-crit);
+  --color-night-warn: var(--night-warn);
+  --color-night-ok: var(--night-ok);
+  --color-glow-crit: var(--glow-crit);
+  --color-glow-warn: var(--glow-warn);
   --font-sans: var(--font-open-sans), var(--font-arabic), system-ui, sans-serif;
 }
 
@@ -157,6 +173,21 @@ html[lang="ar"] .title {
   background: var(--surface);
   border-radius: 12px;
   box-shadow: var(--shadow);
+}
+/* Light card (20px) and the dark night card (24px) of the night-command design */
+.card {
+  background: var(--surface);
+  border-radius: 20px;
+  box-shadow: var(--shadow-card);
+}
+.night {
+  background: var(--night);
+  color: var(--night-ink);
+  border-radius: 24px;
+  box-shadow:
+    0 0 0 1px var(--night-edge),
+    var(--night-shadow),
+    inset 0 1px 0 rgb(255 255 255 / 0.06);
 }
 
 :focus-visible {

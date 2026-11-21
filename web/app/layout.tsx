@@ -15,7 +15,15 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" dir="ltr">
+    <html lang="en" dir="ltr" suppressHydrationWarning>
+      <head>
+        {/* Set the theme before first paint (saved choice, else the device setting), so a dark page never flashes light */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem("tg-theme");if(t!=="light"&&t!=="dark")t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.dataset.theme=t}catch(e){}`,
+          }}
+        />
+      </head>
       <body className={`${openSans.variable} ${arabic.variable} antialiased`}>
         <LangProvider>
           <div className="min-h-screen lg:grid lg:grid-cols-[248px_minmax(0,1fr)]">

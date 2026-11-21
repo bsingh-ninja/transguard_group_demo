@@ -3,6 +3,7 @@
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { SPRING, SPRING_SNAP } from "@/lib/motion";
 
 /**
  * Presenter mode: the meeting walkthrough from the README as a small overlay (press P, or open with ?present=1).
@@ -144,7 +145,6 @@ export default function Presenter() {
   }, [on, step, path, reduce]);
 
   const s = STEPS[step];
-  const spring = { type: "spring" as const, bounce: 0, duration: 0.45 };
   return (
     <>
       <AnimatePresence>
@@ -156,7 +156,7 @@ export default function Presenter() {
             initial={{ opacity: 0, x: box.x, y: box.y, width: box.w, height: box.h }}
             animate={{ opacity: 1, x: box.x, y: box.y, width: box.w, height: box.h }}
             exit={{ opacity: 0 }}
-            transition={reduce ? { duration: 0.15 } : spring}
+            transition={reduce ? { duration: 0.15 } : SPRING}
           />
         )}
       </AnimatePresence>
@@ -170,7 +170,7 @@ export default function Presenter() {
             initial={reduce ? { opacity: 0 } : { opacity: 0, y: 24, scale: 0.97, filter: "blur(6px)" }}
             animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
             exit={reduce ? { opacity: 0 } : { opacity: 0, y: 16, scale: 0.98, filter: "blur(6px)" }}
-            transition={spring}
+            transition={SPRING}
             className="presenter-card fixed bottom-4 left-4 z-[70] w-[min(380px,calc(100vw-2rem))] rounded-2xl p-4 text-[#f2efed]"
             style={{ fontFamily: "var(--font-open-sans), system-ui, sans-serif" }}
           >
@@ -194,7 +194,7 @@ export default function Presenter() {
                 initial={reduce ? { opacity: 0 } : { opacity: 0, x: 12 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={reduce ? { opacity: 0 } : { opacity: 0, x: -12 }}
-                transition={{ type: "spring", bounce: 0, duration: 0.3 }}
+                transition={SPRING_SNAP}
               >
                 <p className="mt-3 text-[14px] font-bold leading-snug text-white">{s.do}</p>
                 <p className="mt-2 text-[13.5px] leading-relaxed text-[#e4dfdb]">“{s.say}”</p>
