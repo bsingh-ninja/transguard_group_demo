@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 /*
-  Layout: a supervisor's night-shift desk. Charcoal sidebar, the answer first ("what needs action tonight"),
-  then a map of the coast with every post, and an action list beside it.
-  Color: Transguard red for actions and critical states only, crest gold for selection, warm charcoal neutrals.
+  "Night command": a light desk with one dark situation card per screen that holds the answer
+  (coverage ring, night maps, the result). Light cards beside it hold the actions.
+  Color: Transguard red for real problems only, amber for risk, crest gold for selection, warm neutrals.
   Type: Open Sans (Transguard's site face), IBM Plex Sans Arabic, tabular figures for data.
 */
 :root {
@@ -12,9 +12,10 @@
   --surface-2: #efeeec;
   --border: #e3e1de;
   --hairline: #ebe9e6;
-  --sidebar: #1f1c1b;
-  --sidebar-fg: #f2efed;
-  --sidebar-muted: #a39d98;
+  --sidebar: #faf9f7;
+  --sidebar-fg: #1d1a19;
+  --sidebar-muted: #77706c;
+  --sidebar-active: #ffffff;
   --primary: #d71920;
   --primary-fg: #ffffff;
   --accent: #a2844b;
@@ -59,9 +60,10 @@
   --surface-2: #262220;
   --border: #36312e;
   --hairline: #2c2826;
-  --sidebar: #0e0c0b;
+  --sidebar: #100e0d;
   --sidebar-fg: #f2efed;
   --sidebar-muted: #9c958f;
+  --sidebar-active: #221f1d;
   --primary: #ec4a50;
   --primary-fg: #ffffff;
   --accent: #c9a86c;
@@ -93,6 +95,7 @@
   --color-sidebar: var(--sidebar);
   --color-sidebar-fg: var(--sidebar-fg);
   --color-sidebar-muted: var(--sidebar-muted);
+  --color-sidebar-active: var(--sidebar-active);
   --color-primary: var(--primary);
   --color-primary-fg: var(--primary-fg);
   --color-accent: var(--accent);
