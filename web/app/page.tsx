@@ -160,8 +160,8 @@ export default function Tonight() {
         <dl className="mt-6 grid grid-cols-2 gap-4 border-t border-night-line pt-[18px] sm:grid-cols-4">
           <Stat label={t.onShift} value={totals.assigned} unit={`${t.of} ${totals.required}`} />
           <Stat label={t.sites} value={totals.sites} />
-          <Stat label={t.openPosts} value={totals.vacancies} tone="crit" />
-          <Stat label={t.likelyNoShows} value={totals.at_risk} tone="warn" />
+          <Stat label={t.openPosts} value={totals.vacancies} tone={totals.vacancies ? "crit" : undefined} />
+          <Stat label={t.likelyNoShows} value={totals.at_risk} tone={totals.at_risk ? "warn" : undefined} />
         </dl>
 
         <div className="mt-[22px] flex flex-wrap gap-3">
@@ -295,7 +295,7 @@ export default function Tonight() {
         </motion.div>
       </section>
 
-      {open && <FindCoverSheet key={open.key} gap={open} onClose={() => setOpen(null)} onDone={load} />}
+      {open && <FindCoverSheet key={open.key} gap={open} siteType={siteType(open.site_id)} onClose={() => setOpen(null)} onDone={load} />}
       {planOpen && <PlanSheet onClose={() => setPlanOpen(false)} onDone={load} />}
     </div>
   );
