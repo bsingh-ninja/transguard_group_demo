@@ -1,15 +1,54 @@
-name: transguard-group-demo
+# Server run: the whole demo (Postgres, API, web app, nginx) in one container, published on host port 3035 only.
+# Postgres (5432), the API (8002) and Next.js (3000) listen on 127.0.0.1 inside the container and are never published.
+#   docker compose up -d --build
+# Secrets come from ./.env (ignored by git): GEMINI_API_KEY=..., DEMO_PASSWORD=... (login user name: demo)
+name: transguard-demo-server
 
 services:
+  app:
+    build:
+      context: .
+      network: host  # build only: the default bridge network stalls on large downloads on this host
+      args:
+        PIP_INDEX_URL: https://mirrors.aliyun.com/pypi/simple/  # pypi.org runs at ~20 KB/s from this host
+    image: transguard-demo:latest
+    container_name: transguard-demo-app
+    ports:
+      - "3035:7860"
+    environment:
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+      DEMO_PASSWORD: ${DEMO_PASSWORD:-}
+      NODE_MAX_OLD_SPACE: "256"
+    restart: unless-stopped
+    # Resource caps so the demo cannot starve the other services on this host
+    mem_limit: 1g
+    memswap_limit: 1g
+    cpus: 1.0
+    pids_limit: 256
+    # Hardening: non-root user (uid 1000, set in the image), no privilege escalation, no Linux capabilities
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Local development only (./start.sh starts it with --profile dev): Postgres on 127.0.0.1:5434.
+  # Not started by a plain `docker compose up`.
   db:
     image: postgres:16-alpine
     container_name: transguard-demo-db
+    profiles: ["dev"]
     environment:
       POSTGRES_USER: demo
       POSTGRES_PASSWORD: demo
       POSTGRES_DB: demos
     ports:
-      - "5434:5432"
+      - "127.0.0.1:5434:5432"  # local only, never on the network
     volumes:
       - transguard-demo-pg:/var/lib/postgresql/data
     restart: unless-stopped
