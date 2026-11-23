@@ -10,6 +10,7 @@ Optional environment variables, stored on the Space as secrets (never in the cod
 Uploads the code the container needs (not the client README, docs, videos or CI files) with
 a short Space README, then Hugging Face builds the Dockerfile and serves the app on :7860.
 """
+
 import os
 import pathlib
 import shutil
@@ -56,8 +57,7 @@ def main():
             dest.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / f, dest)
         pathlib.Path(tmp, "README.md").write_text(SPACE_README)
-        api.upload_folder(folder_path=tmp, repo_id=space, repo_type="space",
-                          commit_message="Deploy from GitHub", delete_patterns=["*"])
+        api.upload_folder(folder_path=tmp, repo_id=space, repo_type="space", commit_message="Deploy from GitHub", delete_patterns=["*"])
     owner, name = space.split("/")
     print(f"Space:   https://huggingface.co/spaces/{space}")
     print(f"App URL: https://{owner}-{name}.hf.space".lower().replace("_", "-"))

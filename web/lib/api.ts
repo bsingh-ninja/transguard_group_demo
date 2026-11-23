@@ -114,6 +114,19 @@ export type Gap = {
   worker?: string;
   worker_id?: string;
   noshow_risk?: number;
+  reasons?: Reason[];
+};
+
+/** One reason behind a no-show prediction, read from the model. `weight` is its share of the shown push (0 to 1). */
+export type Reason = { key: "absence" | "commute" | "nights" | "overtime"; value: number; typical: number; weight: number };
+
+export type Assumptions = { penalty_aed: number; overtime_rate_aed: number; supervisor_minutes: number; supervisor_rate_aed: number };
+
+export type Savings = {
+  at_stake: { posts: number; aed: number };
+  saved: { filled: number; posts_aed: number; overtime_aed: number; supervisor_minutes: number; supervisor_aed: number; total_aed: number };
+  assumptions: Assumptions;
+  defaults: Assumptions;
 };
 
 export type Candidate = {
@@ -141,6 +154,7 @@ export type Plan = {
   total_commute_km: number;
   total_overtime_aed: number;
   solve_ms: number;
+  estimated_saving_aed: number;
 };
 
 export type AssignResult = {
@@ -164,13 +178,28 @@ export type WhatIfResult = {
 };
 
 export const AREAS = [
-  "Dubai Marina", "JLT", "Downtown Dubai", "Business Bay", "DIFC", "Al Barsha", "Deira", "Al Qusais",
-  "Dubai Silicon Oasis", "Jebel Ali", "Al Quoz", "Airport Freezone", "Abu Dhabi Downtown", "Al Reem Island",
-  "Khalifa City", "Mussafah", "Yas Island", "Saadiyat Island",
+  "Dubai Marina",
+  "JLT",
+  "Downtown Dubai",
+  "Business Bay",
+  "DIFC",
+  "Al Barsha",
+  "Deira",
+  "Al Qusais",
+  "Dubai Silicon Oasis",
+  "Jebel Ali",
+  "Al Quoz",
+  "Airport Freezone",
+  "Abu Dhabi Downtown",
+  "Al Reem Island",
+  "Khalifa City",
+  "Mussafah",
+  "Yas Island",
+  "Saadiyat Island",
 ];
 
 export type DemoWorker = { id: string; name: string; language: string; nationality: string };
-export type SiteOption = { id: string; name: string; area: string };
+export type SiteOption = { id: string; name: string; area: string; type: string };
 
 export type Triage = {
   trade: string;

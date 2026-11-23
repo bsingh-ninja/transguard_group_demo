@@ -1,9 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.db import fetch_one
 from app.transguard.assist import router as transguard_assist_router
 from app.transguard.router import router as transguard_router
-from app.db import fetch_one
+from app.transguard.savings import router as transguard_savings_router
 
 app = FastAPI(title="Transguard demo API")
 
@@ -23,3 +24,4 @@ def health():
 
 app.include_router(transguard_router)
 app.include_router(transguard_assist_router)
+app.include_router(transguard_savings_router)

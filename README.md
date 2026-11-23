@@ -68,6 +68,18 @@ GEMINI_API_KEY=your-key-here
 GEMINI_MODEL=gemini-2.5-flash
 ```
 
+## Code style
+
+Both halves use one formatter and a 140-character line; `.editorconfig` sets indentation and line endings for every editor.
+
+```bash
+cd web && pnpm format && pnpm lint                     # Prettier, then ESLint (Next.js rules)
+cd backend && .venv/bin/pip install -r requirements-dev.txt
+.venv/bin/ruff check --fix . && .venv/bin/ruff format .  # Ruff: lint rules and format, set in pyproject.toml
+```
+
+CI fails if either side is not formatted (`pnpm format:check`, `ruff format --check`).
+
 ## CI
 
 `.github/workflows/ci.yml` runs on every push to `main`, on pull requests and by hand:

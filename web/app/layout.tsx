@@ -15,12 +15,20 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" dir="ltr">
+    <html lang="en" dir="ltr" suppressHydrationWarning>
+      <head>
+        {/* Set the theme before first paint (saved choice, else the device setting), so a dark page never flashes light */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem("tg-theme");if(t!=="light"&&t!=="dark")t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.dataset.theme=t}catch(e){}`,
+          }}
+        />
+      </head>
       <body className={`${openSans.variable} ${arabic.variable} antialiased`}>
         <LangProvider>
           <div className="min-h-screen lg:grid lg:grid-cols-[248px_minmax(0,1fr)]">
             <Sidebar />
-            <main className="min-w-0 px-4 pb-16 pt-6 sm:px-8 lg:px-10 lg:pt-9">
+            <main className="min-w-0 px-4 pb-28 pt-5 sm:px-8 lg:px-10 lg:pb-16 lg:pt-8">
               <div className="mx-auto w-full max-w-[1240px]">{children}</div>
             </main>
           </div>
